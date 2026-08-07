@@ -254,6 +254,84 @@
             transition: 0.2s;
         }
 
+        /* Daily Story Section Styles */
+        .daily-story-card {
+            background-color: var(--surface-card);
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            padding: 16px;
+            margin-bottom: 24px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.6);
+            transition: 0.2s;
+            display: flex;
+            gap: 14px;
+            align-items: center;
+        }
+
+        .daily-story-card:hover {
+            border-color: rgba(201, 24, 74, 0.4);
+        }
+
+        .daily-story-thumb {
+            width: 95px;
+            height: 95px;
+            border-radius: 12px;
+            object-fit: cover;
+            border: 1px solid var(--card-border);
+            flex-shrink: 0;
+        }
+
+        .daily-story-info {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .daily-story-badge {
+            background-color: rgba(201, 24, 74, 0.2);
+            color: var(--primary-red);
+            border: 1px solid rgba(201, 24, 74, 0.3);
+            font-size: 9px;
+            font-weight: 700;
+            padding: 2px 8px;
+            border-radius: 10px;
+            display: inline-block;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            width: max-content;
+            margin-bottom: 2px;
+        }
+
+        .daily-story-title {
+            font-size: 15px;
+            font-weight: bold;
+            color: var(--text-main);
+            margin-bottom: 2px;
+        }
+
+        .daily-story-desc {
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+            line-height: 1.35;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .daily-story-error {
+            background-color: var(--surface-card);
+            border: 1px dashed var(--card-border);
+            border-radius: 16px;
+            padding: 20px;
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 13px;
+            margin-bottom: 24px;
+        }
+
         /* Others Apps Banner Slider Styles */
         .others-apps-section {
             position: relative;
@@ -1239,6 +1317,12 @@
             <div class="slider-dots" id="sliderDots"></div>
         </div>
 
+        <!-- NEW DAILY STORY SECTION -->
+        <div class="section-title" id="dailySectionTitle">Daily Story</div>
+        <div id="dailyStoryContainer">
+            <!-- Dynamically populated or fallback rendered here -->
+        </div>
+
         <div class="section-title" id="continueReadingTitle">Continue Reading</div>
         <div class="continue-card" id="continueCardContainer" onclick="openLastReadingStory()">
             <div class="continue-card-top">
@@ -1495,9 +1579,6 @@
         </div>
     </div>
 
-    
-
-    
     <script>
         const translations = {
             en: {
@@ -1549,7 +1630,10 @@
                 btnCancelEdit: "Cancel",
                 btnSaveEdit: "Save Changes",
                 othersAppsTitle: "Check out our Others Apps",
-                installApp: "Install"
+                installApp: "Install",
+                dailyTitle: "Daily Story",
+                dailyBadge: "Daily Nightmare",
+                noDaily: "No Daily Story Available"
             },
             hi: {
                 logo: "DARK TALES",
@@ -1600,7 +1684,10 @@
                 btnCancelEdit: "रद्द करें",
                 btnSaveEdit: "सहेजें",
                 othersAppsTitle: "हमारे अन्य ऐप्स भी देखें",
-                installApp: "इंस्टॉल"
+                installApp: "इंस्टॉल",
+                dailyTitle: "दैनिक कहानी",
+                dailyBadge: "दैनिक डरावनी कहानी",
+                noDaily: "कोई दैनिक कहानी उपलब्ध नहीं है"
             }
         };
 
@@ -1675,7 +1762,7 @@
                 if (response.ok) {
                     let versionData = await response.json();
                     if (versionData && versionData.versionCode > CURRENT_APP_VERSION) {
-          !              showUpdateDialog(versionData);
+                        showUpdateDialog(versionData);
                     }
                 }
             } catch (e) {
@@ -1705,7 +1792,7 @@
         async function loadAllJsonFiles() {
             let loadedStories = [];
             let globalIdCounter = 1;
-            const categoryFiles = ['ghost', 'haunted', 'crime', 'demon', 'forest', 'mystery'];
+            const categoryFiles = ['ghost', 'haunted', 'crime', 'demon', 'forest', 'mystery', 'daily'];
 
             for (let cat of categoryFiles) {
                 try {
@@ -1764,7 +1851,88 @@
 
             allStories = loadedStories;
             initAppUI();
+            fetchAndRenderDailyStory();
             initAdvancedNotificationScheduler();
+        }
+
+        async function fetchAndRenderDailyStory() {
+            const container = document.getElementById('dailyStoryContainer');
+            const t = translations[appLang];
+            try {
+                let response = await fetch('daily.json');
+                if (!response.ok) throw new Error('Failed to load daily.json');
+                
+                let data = await response.json();
+                let item = Array.isArray(data) ? data[0] : data;
+                let dailyId = 9999;
+                
+                let title = item.title || item.title_en || "Daily Horror";
+                let desc = item.description || item.description_en || "A new horror story...";
+                let imagePath = item.image || "images/daily1.webp";
+                // Target URL fix: stories/day1.json ya jo bhi item.url / item.json path ho
+                let targetUrl = item.url || item.jsonPath || "stories/day1.json";
+                
+                let dailyStoryObj = {
+                    id: dailyId,
+                    imageName: imagePath,
+                    category: item.category || "Daily Special",
+                    title_en: title,
+                    title_hi: title,
+                    time_en: "5 min read",
+                    time_hi: "5 मिनट पढ़ें",
+                    rating: 5.0,
+                    content_en: desc,
+                    content_hi: desc
+                };
+                
+                if (!allStories.some(s => s.id === dailyId)) {
+                    allStories.push(dailyStoryObj);
+                }
+
+                container.innerHTML = `
+                    <div class="daily-story-card" onclick="fetchAndOpenDailyStoryTarget('${targetUrl}', ${dailyId})">
+                        <img src="${imagePath}" class="daily-story-thumb" alt="Daily Story" onerror="this.src='${FALLBACK_IMG}'">
+                        <div class="daily-story-info">
+                            <span class="daily-story-badge">${t.dailyBadge}</span>
+                            <div class="daily-story-title">${title}</div>
+                            <div class="daily-story-desc">${desc}</div>
+                            <button class="read-now-btn" style="padding: 5px 12px; font-size: 11px; width: max-content;" onclick="event.stopPropagation(); fetchAndOpenDailyStoryTarget('${targetUrl}', ${dailyId});">${t.readNow}</button>
+                        </div>
+                    </div>
+                `;
+            } catch (e) {
+                container.innerHTML = `<div class="daily-story-error">👻 ${t.noDaily}</div>`;
+            }
+        }
+
+        async function fetchAndOpenDailyStoryTarget(targetPath, defaultId) {
+            try {
+                let res = await fetch(targetPath);
+                if (res.ok) {
+                    let storyData = await res.json();
+                    let customId = 8888;
+                    let customStoryObj = {
+                        id: customId,
+                        imageName: storyData.imageName || storyData.image || "ghost",
+                        category: storyData.category || "Daily Special",
+                        title_en: storyData.title_en || storyData.title || "Daily Story",
+                        title_hi: storyData.title_hi || storyData.title || "दैनिक कहानी",
+                        time_en: storyData.time_en || "5 min read",
+                        time_hi: storyData.time_hi || "5 मिनट पढ़ें",
+                        rating: storyData.rating || 5.0,
+                        content_en: storyData.content_en || storyData.content || "Loading content...",
+                        content_hi: storyData.content_hi || storyData.content || "सामग्री लोड हो रही है..."
+                    };
+                    if (!allStories.some(s => s.id === customId)) {
+                        allStories.push(customStoryObj);
+                    }
+                    openReader(customId);
+                    return;
+                }
+            } catch (err) {
+                console.log("Direct target fetch failed, falling back to default reader.");
+            }
+            openReader(defaultId);
         }
 
         function initApp() {
@@ -1885,10 +2053,6 @@
                 `;
                 container.appendChild(item);
             });
-            
-            // Mark as read only when user actually views the notifications screen or clears/interacts, 
-            // FIXED: Ab notifications screen khulte hi turant sabko read nahi banayenge, 
-            // taaki red dot aur shake animation tab tak dikhe jab tak user khud unhe na dekh le ya clear na karde.
         }
 
         function initAppUI() {
@@ -2014,7 +2178,8 @@
 
                 const slide = document.createElement('div');
                 slide.className = 'featured-banner';
-                slide.style.backgroundImage = `linear-gradient(180deg, rgba(20,20,24,0.6) 0%, rgba(14,14,17,0.9) 100%), url('${STORY_BANNER_PATH}${feat.imageName}.webp')`;
+                let bgSource = feat.imageName && feat.imageName.includes('/') ? feat.imageName : `${STORY_BANNER_PATH}${feat.imageName}.webp`;
+                slide.style.backgroundImage = `linear-gradient(180deg, rgba(20,20,24,0.6) 0%, rgba(14,14,17,0.9) 100%), url('${bgSource}')`;
                 slide.innerHTML = `
                     <span class="featured-badge">${t.featBadge} #${idx + 1}</span>
                     <div class="featured-title">${title}</div>
@@ -2130,7 +2295,8 @@
 
             document.getElementById('continueTitle').innerText = appLang === 'en' ? targetStory.title_en : targetStory.title_hi;
             document.getElementById('continueMeta').innerText = `${targetStory.category} • ${Math.round(progressPercent)}% Complete`;
-            document.getElementById('continueThumb').src = `${STORY_BANNER_PATH}${targetStory.imageName}.webp`;
+            let thumbSource = targetStory.imageName && targetStory.imageName.includes('/') ? targetStory.imageName : `${STORY_BANNER_PATH}${targetStory.imageName}.webp`;
+            document.getElementById('continueThumb').src = thumbSource;
             document.getElementById('continueProgressFill').style.width = progressPercent + '%';
         }
 
@@ -2150,6 +2316,7 @@
             const t = translations[appLang];
             document.getElementById('logoText').innerHTML = `<img src="assets/icon/logo.webp" alt="Logo" class="logo-icon" onerror="this.style.display='none'"> ${t.logo}`;
             document.getElementById('searchInput').placeholder = t.searchPlaceholder;
+            document.getElementById('dailySectionTitle').innerText = t.dailyTitle;
             document.getElementById('continueReadingTitle').innerText = t.continueReading;
             document.getElementById('catSectionTitle').innerText = t.categories;
             document.querySelectorAll('.view-all').forEach(el => el.innerText = t.viewAll);
@@ -2185,6 +2352,7 @@
             document.getElementById('btnSaveEdit').innerText = t.btnSaveEdit;
             document.getElementById('othersAppsTitle').innerText = t.othersAppsTitle;
             renderOthersAppsSlider();
+            fetchAndRenderDailyStory();
         }
 
         function switchTab(screenId, navElement) {
@@ -2241,11 +2409,12 @@
 
             allStories.forEach(story => {
                 const title = appLang === 'en' ? story.title_en : story.title_hi;
+                let thumbSource = story.imageName && story.imageName.includes('/') ? story.imageName : `${STORY_BANNER_PATH}${story.imageName}.webp`;
                 const card = document.createElement('div');
                 card.className = 'trending-card';
                 card.onclick = () => openReader(story.id);
                 card.innerHTML = `
-                  <img src="${STORY_BANNER_PATH}${story.imageName}.webp" class="trending-thumb" alt="${title}" onerror="this.src='${FALLBACK_IMG}'">
+                  <img src="${thumbSource}" class="trending-thumb" alt="${title}" onerror="this.src='${FALLBACK_IMG}'">
                     <div class="trending-details">
                         <h5>${title}</h5>
                         <div class="trending-rating">★ ${story.rating}</div>
@@ -2303,12 +2472,13 @@
             filtered.forEach(story => {
                 const title = appLang === 'en' ? story.title_en : story.title_hi;
                 const timeText = appLang === 'en' ? story.time_en : story.time_hi;
+                let thumbSource = story.imageName && story.imageName.includes('/') ? story.imageName : `${STORY_BANNER_PATH}${story.imageName}.webp`;
                 const item = document.createElement('div');
                 item.className = 'lib-story-item';
                 item.onclick = () => openReader(story.id);
 
                 item.innerHTML = `
-                    <img src="${STORY_BANNER_PATH}${story.imageName}.webp" class="lib-item-thumb" alt="${title}" onerror="this.src='${FALLBACK_IMG}'">
+                    <img src="${thumbSource}" class="lib-item-thumb" alt="${title}" onerror="this.src='${FALLBACK_IMG}'">
                     <div class="lib-item-info">
                         <h4>${title}</h4>
                         <p>⏱️ ${timeText} • ★ ${story.rating}</p>
@@ -2355,6 +2525,7 @@
             list.forEach(story => {
                 const title = appLang === 'en' ? story.title_en : story.title_hi;
                 const timeText = appLang === 'en' ? story.time_en : story.time_hi;
+                let thumbSource = story.imageName && story.imageName.includes('/') ? story.imageName : `${STORY_BANNER_PATH}${story.imageName}.webp`;
                 const item = document.createElement('div');
                 item.className = 'lib-story-item';
                 item.onclick = () => openReader(story.id);
@@ -2367,7 +2538,7 @@
                 }
 
                 item.innerHTML = `
-                    <img src="${STORY_BANNER_PATH}${story.imageName}.webp" class="lib-item-thumb" alt="${title}" onerror="this.src='${FALLBACK_IMG}'">
+                    <img src="${thumbSource}" class="lib-item-thumb" alt="${title}" onerror="this.src='${FALLBACK_IMG}'">
                     <div class="lib-item-info">
                         <h4>${title}</h4>
                         <p>⏱️ ${timeText} • 🏷️ ${story.category}</p>
@@ -2434,7 +2605,8 @@
             document.getElementById('readTitle').innerText = storyLang === 'en' ? story.title_en : story.title_hi;
             document.getElementById('readContent').innerText = storyLang === 'en' ? story.content_en : story.content_hi;
             document.getElementById('readContent').style.fontSize = currentFontSize + 'px';
-            document.getElementById("readThumbnail").src = `${STORY_BANNER_PATH}${story.imageName}.webp`;
+            let thumbSource = story.imageName && story.imageName.includes('/') ? story.imageName : `${STORY_BANNER_PATH}${story.imageName}.webp`;
+            document.getElementById("readThumbnail").src = thumbSource;
 
             updateReaderSaveButton();
 
@@ -2522,11 +2694,12 @@
 
             filtered.forEach(story => {
                 const title = appLang === 'en' ? story.title_en : story.title_hi;
+                let thumbSource = story.imageName && story.imageName.includes('/') ? story.imageName : `${STORY_BANNER_PATH}${story.imageName}.webp`;
                 const card = document.createElement('div');
                 card.className = 'trending-card';
                 card.onclick = () => openReader(story.id);
                 card.innerHTML = `
-                   <img src="${STORY_BANNER_PATH}${story.imageName}.webp" class="trending-thumb" alt="${title}" onerror="this.src='${FALLBACK_IMG}'">
+                   <img src="${thumbSource}" class="trending-thumb" alt="${title}" onerror="this.src='${FALLBACK_IMG}'">
                     <div class="trending-details">
                         <h5>${title}</h5>
                         <div class="trending-rating">★ ${story.rating}</div>
@@ -2557,16 +2730,6 @@
         }
 
         initApp();
-
-if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./sw.js')
-            .then(() => console.log('Service Worker Registered'))
-            .catch(console.error);
-    });
-}
-
-        
     </script>
 
 </body>
