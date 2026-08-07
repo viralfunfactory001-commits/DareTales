@@ -1,21 +1,43 @@
 [
-
-{
-  "title": "The Haunted Forest",
-  "image": "images/daily1.webp",
-  "description": "A new horror story...",
-  "url": "stories/day1.html",
-  "date": "2026-08-07"
-}, 
-
-
-{
-  "title": "The Haunted Forest",
-  "image": "images/daily2.webp",
-  "description": "A new horror story...",
-  "url": "stories/day2.html",
-  "date": "2026-08-08"
-}
+  {
+    "title": {
+      "en": "The Haunted Forest",
+      "hi": "भूतिया जंगल"
+    },
+    "description": {
+      "en": "A new horror story...",
+      "hi": "एक नई डरावनी कहानी..."
+    },
+    "image": "images/daily1.webp",
+    "url": "stories/day1.json",
+    "date": "2026-08-07"
+  },
 
 
+  {
+    "title": {
+      "en": "The Cursed Doll",
+      "hi": "शापित गुड़िया"
+    },
+    "description": {
+      "en": "A terrifying mystery awaits...",
+      "hi": "एक खौफनाक रहस्य आपका इंतज़ार कर रहा है..."
+    },
+    "image": "images/daily2.webp",
+    "url": "stories/day2.json",
+    "date": "2026-08-08"
+  },
+  {
+    "title": {
+      "en": "Midnight Train",
+      "hi": "आधी रात की ट्रेन"
+    },
+    "description": {
+      "en": "Don't board the last train...",
+      "hi": "आखिरी ट्रेन में मत चढ़ना..."
+    },
+    "image": "images/daily3.webp",
+    "url": "stories/day3.json",
+    "date": "2026-08-09"
+  }
 ]
