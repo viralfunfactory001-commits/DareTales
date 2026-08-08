@@ -1847,7 +1847,7 @@
 
         async function checkForAppUpdates() {
             try {
-                let response = await fetch('https://raw.githubusercontent.com/viralfunfactory001-commits/darktales/refs/heads/main/version.json');
+                let response = await fetch('https://raw.githubusercontent.com/viralfunfactory001-commits/DareTales/refs/heads/main/version.json');
                 if (response.ok) {
                     let versionData = await response.json();
                     if (versionData && versionData.versionCode > CURRENT_APP_VERSION) {
