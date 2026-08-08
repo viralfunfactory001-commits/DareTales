@@ -1,0 +1,2923 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <link rel="icon" type="image/png" href="notification_icon.png">
+    <style>
+        :root {
+            --bg-color: #050507;
+            --surface-color: #0F0F12;
+            --surface-card: #141418;
+            --primary-red: #5c0909;
+            --blood-glow: rgba(201, 24, 74, 0.25);
+            --text-main: #EDEDED;
+            --text-muted: #7A7A85;
+            --card-border: #241D22;
+            --font-size: 16px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            padding-bottom: 90px;
+        }
+
+        .app-screen {
+            display: none;
+        }
+
+        .app-screen.active-screen {
+            display: block;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 20px 2px 15px;
+            background-color: var(--surface-color);
+            border-bottom: 1px solid var(--card-border);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.8);
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        @keyframes shakeBell {
+            0% { transform: translateX(0); }
+            20% { transform: translateX(-4px); }
+            40% { transform: translateX(4px); }
+            60% { transform: translateX(-4px); }
+            80% { transform: translateX(4px); }
+            100% { transform: translateX(0); }
+        }
+
+        .notification-icon-btn {
+            background: none;
+            border: none;
+            color: var(--text-main);
+            font-size: 24px;
+            cursor: pointer;
+            position: relative;
+            display: inline-block;
+        }
+
+        .notification-icon-btn.has-unread::after {
+            content: '';
+            position: absolute;
+            top: 2px;
+            right: 2px;
+            width: 8px;
+            height: 8px;
+            background-color: var(--primary-red);
+            border-radius: 50%;
+            box-shadow: 0 0 6px var(--primary-red);
+        }
+
+        .notification-icon-btn.has-unread {
+            animation: shakeBell 0.8s ease-in-out infinite;
+        }
+
+        .logo {
+            font-size: 20px;
+            font-weight: bold;
+            color: var(--primary-red);
+            letter-spacing: 2px;
+            cursor: pointer;
+            text-shadow: 0 0 5px var(--primary-red);
+            display: flex;
+            align-items: center;
+            gap: 3px;
+        }
+
+        .logo-icon {
+            width: 45px;
+            height: 45px;
+            object-fit: contain;
+        }
+
+        .container {
+            padding: 16px;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .search-box {
+            position: relative;
+            margin-bottom: 20px;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 12px 16px 12px 42px;
+            background-color: var(--surface-color);
+            border: 1px solid var(--card-border);
+            border-radius: 10px;
+            color: var(--text-main);
+            font-size: 14px;
+            outline: none;
+            transition: 0.3s;
+        }
+
+        .search-box input:focus {
+            border-color: var(--primary-red);
+            box-shadow: 0 0 10px var(--blood-glow);
+        }
+
+        .search-box span {
+            position: absolute;
+            left: 14px;
+            top: 14px;
+            color: var(--text-muted);
+        }
+
+        .section-title {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 12px;
+            color: var(--text-main);
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .section-title span.view-all {
+            font-size: 12px;
+            color: var(--primary-red);
+            cursor: pointer;
+            text-transform: none;
+        }
+
+        /* Swipeable Featured Banner Slider Styles */
+        .featured-slider-container {
+            position: relative;
+            margin-bottom: 24px;
+            overflow: hidden;
+            border-radius: 16px;
+            border: 1px solid var(--card-border);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.7);
+        }
+
+        .featured-slides-track {
+            display: flex;
+            transition: transform 0.4s ease-in-out;
+        }
+
+        .featured-banner {
+            min-width: 100%;
+            background: linear-gradient(180deg, rgba(20, 20, 24, 0.6) 0%, rgba(14, 14, 17, 0.9) 100%), center/cover;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .slider-dots {
+            position: absolute;
+            bottom: 10px;
+            right: 15px;
+            display: flex;
+            gap: 6px;
+            z-index: 10;
+        }
+
+        .slider-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: rgba(255, 255, 255, 0.3);
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .slider-dot.active {
+            background-color: var(--primary-red);
+            width: 20px;
+            border-radius: 4px;
+        }
+
+        .featured-badge {
+            background-color: rgba(201, 24, 74, 0.4);
+            color: #a18282;
+            border: 1px solid rgba(201, 24, 74, 0.4);
+            font-size: 10px;
+            font-weight: 700;
+            padding: 4px 10px;
+            border-radius: 20px;
+            display: inline-block;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .featured-title {
+            font-size: 20px;
+            font-weight: bold;
+            color: var(--text-main);
+            margin-bottom: 6px;
+            text-shadow: 0 0 10px var(--blood-glow);
+        }
+
+        .featured-snippet {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-bottom: 16px;
+            line-height: 1.4;
+        }
+
+        .read-now-btn {
+            background-color: var(--primary-red);
+            color: white;
+            border: none;
+            padding: 8px 18px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: 0 0 12px var(--blood-glow);
+            transition: 0.2s;
+        }
+
+        /* Daily Story Section Styles */
+        .daily-story-card {
+            background-color: var(--surface-card);
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            padding: 16px;
+            margin-bottom: 24px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.6);
+            transition: 0.2s;
+            display: flex;
+            gap: 14px;
+            align-items: center;
+        }
+
+        .daily-story-card:hover {
+            border-color: rgba(201, 24, 74, 0.4);
+        }
+
+        .daily-story-thumb {
+            width: 100px;
+            height: 95px;
+            border-radius: 12px;
+            object-fit: cover;
+            border: 1px solid var(--card-border);
+            flex-shrink: 0;
+        }
+
+        .daily-story-info {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .daily-story-badge {
+            background-color: rgba(201, 24, 74, 0.2);
+            color: var(--primary-red);
+            border: 1px solid rgba(201, 24, 74, 0.3);
+            font-size: 9px;
+            font-weight: 700;
+            padding: 2px 8px;
+            border-radius: 10px;
+            display: inline-block;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            width: max-content;
+            margin-bottom: 2px;
+        }
+
+        .daily-story-title {
+            font-size: 15px;
+            font-weight: bold;
+            color: var(--text-main);
+            margin-bottom: 2px;
+        }
+
+        .daily-story-desc {
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+            line-height: 1.35;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .daily-story-error {
+            background-color: var(--surface-card);
+            border: 1px dashed var(--card-border);
+            border-radius: 16px;
+            padding: 20px;
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 13px;
+            margin-bottom: 24px;
+        }
+
+        /* Others Apps Banner Slider Styles */
+        .others-apps-section {
+            position: relative;
+            margin-top: 30px;
+            overflow: hidden;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.7);
+        }
+
+        .others-slider-container {
+            position: relative;
+            overflow: hidden;
+            border-radius: 14px;
+            border: 1px solid var(--card-border);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.7);
+            background-color: var(--surface-card);
+        }
+
+        .others-slides-track {
+            display: flex;
+            transition: transform 0.4s ease-in-out;
+        }
+
+        .other-app-banner {
+            min-width: 100%;
+            height: 180px;
+            background-size: cover;
+            background-position: center;
+            position: relative;
+            cursor: pointer;
+            display: flex;
+            align-items: flex-end;
+            padding: 14px;
+            box-sizing: border-box;
+        }
+
+        .other-app-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(180deg, rgba(0,0,0,0.2) 0%, rgba(5,5,7,0.85) 100%);
+            z-index: 1;
+        }
+
+        .other-app-content {
+            position: relative;
+            z-index: 2;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+        }
+
+        .other-app-info h4 {
+            font-size: 15px;
+            font-weight: bold;
+            color: var(--text-main);
+            margin-bottom: 2px;
+            text-shadow: 0 0 8px var(--blood-glow);
+        }
+
+        .other-app-info p {
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+
+        .other-app-btn {
+            background-color: var(--primary-red);
+            color: white;
+            border: none;
+            padding: 6px 14px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 600;
+            box-shadow: 0 0 10px var(--blood-glow);
+            white-space: nowrap;
+        }
+
+        .others-slider-dots {
+            position: absolute;
+            bottom: 8px;
+            right: 14px;
+            display: flex;
+            gap: 5px;
+            z-index: 3;
+        }
+
+        .others-slider-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background-color: rgba(255, 255, 255, 0.3);
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .others-slider-dot.active {
+            background-color: var(--primary-red);
+            width: 16px;
+            border-radius: 4px;
+        }
+
+        .continue-card {
+            background-color: var(--surface-card);
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            padding: 12px;
+            margin-bottom: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            cursor: pointer;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.6);
+            transition: 0.2s;
+        }
+
+        .continue-card:hover {
+            border-color: rgba(201, 24, 74, 0.4);
+        }
+
+        .continue-card-top {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .continue-thumb {
+            width: 90px;
+            height: 50px;
+            border-radius: 10px;
+            object-fit: cover;
+            border: 1px solid var(--card-border);
+        }
+
+        .continue-info {
+            flex: 1;
+        }
+
+        .continue-info h4 {
+            font-size: 15px;
+            color: var(--text-main);
+            margin-bottom: 3px;
+            font-weight: 700;
+        }
+
+        .continue-info p {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-bottom: 0;
+        }
+
+        .continue-card-bottom {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            margin-top: 4px;
+        }
+
+        .progress-bar-container {
+            flex: 1;
+            height: 6px;
+            background-color: #000000;
+            border-radius: 3px;
+            overflow: hidden;
+            border: 1px solid var(--card-border);
+        }
+
+        .progress-fill {
+            height: 100%;
+            background-color: #ed2d67;
+            border-radius: 3px;
+            box-shadow: 1 0.5 8 #ed2d67;
+        }
+
+        .continue-action-btn {
+            background: linear-gradient(135deg, #5c0909 0%, #800F2F 100%);
+            color: white;
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            border: none;
+            cursor: pointer;
+            box-shadow: 0 0 12px var(--blood-glow);
+            white-space: nowrap;
+        }
+
+        .categories-scroll {
+            display: flex;
+            gap: 12px;
+            overflow-x: auto;
+            padding-bottom: 6px;
+            margin-bottom: 24px;
+            scrollbar-width: none;
+        }
+
+        .categories-scroll::-webkit-scrollbar {
+            display: none;
+        }
+
+        .cat-item-rect {
+            width: 90px;
+            text-align: center;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+
+        .cat-rect-img {
+            width: 90px;
+            height: 90px;
+            border-radius: 10px;
+            object-fit: cover;
+            border: 1px solid var(--card-border);
+            margin-bottom: 6px;
+            transition: 0.2s;
+        }
+
+        .cat-item-rect:hover .cat-rect-img {
+            border-color: var(--primary-red);
+            box-shadow: 0 0 10px var(--blood-glow);
+        }
+
+        .cat-item-rect span {
+            font-size: 11px;
+            color: var(--text-muted);
+            display: block;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .trending-scroll {
+            display: flex;
+            gap: 12px;
+            overflow-x: auto;
+            padding-bottom: 6px;
+            margin-bottom: 24px;
+            scrollbar-width: none;
+        }
+
+        .trending-scroll::-webkit-scrollbar {
+            display: none;
+        }
+
+        .trending-card {
+            width: 120px;
+            flex-shrink: 0;
+            background-color: var(--surface-card);
+            border: 1px solid var(--card-border);
+            border-radius: 10px;
+            overflow: hidden;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .trending-card:hover {
+            border-color: var(--primary-red);
+        }
+
+        .trending-thumb {
+            width: 100%;
+            height: 120px;
+            object-fit: cover;
+        }
+
+        .trending-details {
+            padding: 8px;
+        }
+
+        .trending-details h5 {
+            font-size: 12px;
+            color: var(--text-main);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            margin-bottom: 4px;
+        }
+
+        .trending-rating {
+            font-size: 10px;
+            color: #f1c40f;
+        }
+
+        .category-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .category-row-card {
+            background-color: var(--surface-card);
+            border: 1px solid var(--card-border);
+            border-radius: 12px;
+            padding: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .category-row-card:hover {
+            border-color: rgba(201, 24, 74, 0.4);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.6);
+        }
+
+        .cat-row-left {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .cat-row-thumb {
+            width: 55px;
+            height: 55px;
+            border-radius: 8px;
+            object-fit: cover;
+            border: 1px solid var(--card-border);
+        }
+
+        .cat-row-info h4 {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-main);
+            margin-bottom: 2px;
+        }
+
+        .cat-row-info p {
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+
+        .cat-row-arrow {
+            color: var(--primary-red);
+            font-size: 16px;
+        }
+
+        .back-to-explore {
+            background: none;
+            border: none;
+            color: var(--primary-red);
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-bottom: 14px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .library-tabs {
+            display: flex;
+            justify-content: space-around;
+            border-bottom: 1px solid var(--card-border);
+            margin-bottom: 16px;
+        }
+
+        .lib-tab {
+            padding: 10px 4px;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-muted);
+            cursor: pointer;
+            position: relative;
+        }
+
+        .lib-tab.active {
+            color: var(--primary-red);
+        }
+
+        .lib-tab.active::after {
+            content: '';
+            position: absolute;
+            bottom: -1px;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background-color: var(--primary-red);
+        }
+
+        .lib-story-item {
+            background-color: var(--surface-card);
+            border: 1px solid var(--card-border);
+            border-radius: 12px;
+            padding: 12px;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .lib-item-thumb {
+            width: 55px;
+            height: 55px;
+            border-radius: 8px;
+            object-fit: cover;
+        }
+
+        .lib-item-info {
+            flex: 1;
+        }
+
+        .lib-item-info h4 {
+            font-size: 13px;
+            color: var(--text-main);
+            margin-bottom: 2px;
+        }
+
+        .lib-item-info p {
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+
+        .remove-bookmark-btn {
+            background: none;
+            border: none;
+            color: var(--primary-red);
+            font-size: 16px;
+            cursor: pointer;
+            padding: 6px;
+        }
+
+        .profile-main-frame {
+            background-color: var(--surface-card);
+            padding: 0px;
+            margin-left: 10px;
+            margin-top: 5px;
+            margin-right: 10px;
+            margin-bottom: 10px;
+            box-shadow: 0 12px 35px rgba(0, 0, 0, 0.85);
+            border: 2px solid rgba(201, 24, 74, 0.4);
+        }
+
+        .profile-header-card {
+            background: linear-gradient(180deg, rgba(0, 0, 0, 0.4) 0%, rgba(5, 5, 7, 0.1) 100%), center/cover;
+            padding: 16px;
+            text-align: left;
+            margin-bottom: 0px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: inset 0 0 25px rgba(0, 0, 0, 0.6);
+            display: flex;
+            align-items: center;
+            gap: 18px;
+        }
+
+        .profile-avatar-wrapper {
+            position: relative;
+            width: 96px;
+            height: 96px;
+            flex-shrink: 0;
+            box-shadow: 0 0 0 3px var(--blood-glow), 0 0 20px var(--primary-red);
+            border-radius: 50%;
+        }
+
+        .profile-avatar {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 0.3px solid rgba(201, 24, 74, 0.4);
+            background: var(--surface-color);
+        }
+
+        .profile-avatar-edit-badge {
+            position: absolute;
+            bottom: 0px;
+            right: 0px;
+            width: 32px;
+            height: 32px;
+            background-color: var(--primary-red);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
+            color: white;
+            border: 2px solid var(--surface-card);
+            box-shadow: 0 0 8px var(--blood-glow);
+            cursor: pointer;
+        }
+
+        .profile-user-details {
+            flex: 1;
+            text-align: left;
+        }
+
+        .profile-name {
+            font-size: 20px;
+            font-weight: bold;
+            color: var(--text-main);
+            margin-bottom: 4px;
+            text-shadow: 0 0 10px var(--blood-glow);
+        }
+
+        .profile-email {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+        }
+
+        .profile-badge-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            background-color: rgba(201, 24, 74, 0.15);
+            border: 1px solid rgba(201, 24, 74, 0.35);
+            color: var(--primary-red);
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .profile-bio {
+            font-size: 11px;
+            color: #A0A0AB;
+            font-style: italic;
+            display: block;
+        }
+
+        .profile-stats-container {
+            display: flex;
+            align-items: center;
+            background-color: #000000;
+            height: 50px;
+            padding: 16px;
+        }
+
+        .stat-item {
+            flex: 1;
+            text-align: center;
+            padding: 0 2px;
+            border-right: 1px solid rgba(36, 29, 34, 0.3);
+        }
+
+        .stat-item:last-child {
+            border-right: none;
+        }
+
+        .stat-icon {
+            font-size: 16px;
+            color: var(--primary-red);
+            margin-bottom: 1px;
+            display: inline-block;
+            text-shadow: 0 0 8px var(--blood-glow);
+            width: 20px;
+            height: 20px;
+            object-fit: contain;
+        }
+
+        .stat-item h3 {
+            font-size: 10px;
+            color: var(--text-main);
+            margin-bottom: 4px;
+            font-weight: 700;
+        }
+
+        .stat-item p {
+            font-size: 9px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.2px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .profile-menu-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-left: 16px;
+            margin-right: 16px;
+        }
+
+        .profile-menu-item {
+            background-color: var(--surface-card);
+            border: 1px solid var(--card-border);
+            border-radius: 18px;
+            height: 60px;
+            padding: 0 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            color: var(--text-main);
+            font-size: 14px;
+            font-weight: 500;
+            transition: 0.2s;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+        }
+
+        .profile-menu-item:hover {
+            border-color: rgba(201, 24, 74, 0.4);
+        }
+
+        .profile-menu-left {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .profile-menu-icon {
+            width: 28px;
+            height: 28px;
+            object-fit: contain;
+        }
+
+        .edit-modal-card {
+            background-color: var(--surface-card);
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            padding: 20px;
+            width: 100%;
+            max-width: 420px;
+            text-align: left;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.9);
+            max-height: 85vh;
+            overflow-y: auto;
+        }
+
+        .edit-modal-card h3 {
+            color: var(--primary-red);
+            margin-bottom: 16px;
+            font-size: 18px;
+            text-align: center;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-bottom: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 10px 14px;
+            background-color: var(--surface-color);
+            border: 1px solid var(--card-border);
+            border-radius: 8px;
+            color: var(--text-main);
+            font-size: 14px;
+            outline: none;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus {
+            border-color: var(--primary-red);
+        }
+
+        .avatar-picker-grid,
+        .bg-picker-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+            max-height: 130px;
+            overflow-y: auto;
+            padding: 4px;
+            background: var(--surface-color);
+            border: 1px solid var(--card-border);
+            border-radius: 8px;
+        }
+
+        .picker-avatar-item {
+            width: 100%;
+            aspect-ratio: 1;
+            border-radius: 50%;
+            object-fit: cover;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: 0.2s;
+        }
+
+        .picker-avatar-item.selected {
+            border-color: var(--primary-red);
+            box-shadow: 0 0 8px var(--blood-glow);
+        }
+
+        .picker-bg-item {
+            width: 100%;
+            aspect-ratio: 16/9;
+            border-radius: 6px;
+            object-fit: cover;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: 0.2s;
+        }
+
+        .picker-bg-item.selected {
+            border-color: var(--primary-red);
+            box-shadow: 0 0 8px var(--blood-glow);
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .modal-actions button {
+            flex: 1;
+            padding: 10px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+        }
+
+        .btn-cancel {
+            background-color: var(--surface-color);
+            color: var(--text-muted);
+            border: 1px solid var(--card-border);
+        }
+
+        .btn-save {
+            background-color: var(--primary-red);
+            color: white;
+            box-shadow: 0 0 10px var(--blood-glow);
+        }
+
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background-color: var(--surface-color);
+            border-top: 1px solid var(--card-border);
+            display: flex;
+            justify-content: space-around;
+            padding: 10px 0;
+            z-index: 100;
+            box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.8);
+        }
+
+        .nav-item {
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 12px;
+            cursor: pointer;
+            background: none;
+            border: none;
+        }
+
+        .nav-item.active {
+            color: var(--primary-red);
+        }
+
+        .nav-item img {
+            width: 35px;
+            height: 35px;
+            object-fit: contain;
+            margin-bottom: 2px;
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        #reader-view {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-color: var(--bg-color);
+            z-index: 2000;
+            overflow-y: auto;
+        }
+
+        #progress-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 3px;
+            background-color: var(--primary-red);
+            width: 0%;
+            z-index: 2050;
+            transition: width 0.1s;
+        }
+
+        .reader-wrapper {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 24px 20px 40px 20px;
+        }
+
+        .reader-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            border-bottom: 1px solid var(--card-border);
+            padding-bottom: 14px;
+            position: sticky;
+            top: 0;
+            background-color: var(--bg-color);
+            z-index: 2010;
+        }
+
+        .back-btn,
+        .ctrl-btn,
+        .lang-toggle,
+        .reader-save-btn {
+            background: var(--surface-color);
+            border: 1px solid var(--card-border);
+            color: var(--text-main);
+            padding: 7px 9px;
+            border-radius: 6px;
+            font-size: 15px;
+            cursor: pointer;
+        }
+
+        .reader-title {
+            font-size: 20px;
+            font-weight: bold;
+            color: var(--text-main);
+            margin-bottom: 20px;
+            border-left: 4px solid var(--primary-red);
+            padding-left: 12px;
+            line-height: 1.4;
+        }
+
+        .reader-banner-container {
+            width: 100%;
+            height: 200px;
+            border-radius: 12px;
+            overflow: hidden;
+            margin-bottom: 24px;
+            border: 1px solid var(--card-border);
+        }
+
+        .reader-banner-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .reader-content {
+            font-size: var(--font-size);
+            line-height: 1.9;
+            color: #D1D1D6;
+            white-space: pre-line;
+            margin-bottom: 40px;
+        }
+
+        #notification-screen {
+            padding-bottom: 80px;
+        }
+
+        .notification-header-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .clear-all-btn {
+            background: none;
+            border: none;
+            color: var(--primary-red);
+            font-size: 12px;
+            cursor: pointer;
+        }
+
+        .notif-screen-item {
+            background-color: var(--surface-card);
+            border: 1px solid var(--card-border);
+            border-radius: 12px;
+            padding: 14px;
+            margin-bottom: 12px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .notif-screen-item:hover {
+            border-color: var(--primary-red);
+        }
+
+        .notif-screen-item h4 {
+            font-size: 14px;
+            color: var(--text-main);
+            margin-bottom: 4px;
+        }
+
+        .notif-screen-item p {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-bottom: 6px;
+        }
+
+        .notif-time {
+            font-size: 12px;
+            font-weight: bold;
+            color: var(--primary-red);
+        }
+
+        .app-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.85);
+            z-index: 3000;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .modal-card {
+            background-color: var(--surface-card);
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            padding: 24px;
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.9);
+            max-height: 80vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .modal-card h3 {
+            color: var(--primary-red);
+            margin-bottom: 12px;
+            font-size: 18px;
+        }
+
+        .modal-btn {
+            background-color: var(--primary-red);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+    </style>
+</head>
+
+<body onload="initApp()">
+
+    <header>
+        <div class="header-left">
+            <div class="logo" id="logoText" onclick="switchTab('home-screen', document.querySelectorAll('.bottom-nav .nav-item')[0])">
+                <img src="assets/icon/logo.webp" alt="Logo" class="logo-icon" onerror="this.style.display='none'"> DARK TALES
+            </div>
+        </div>
+        <button class="notification-icon-btn" id="notifBellBtn" onclick="switchTab('notification-screen', null)">🔔</button>
+    </header>
+
+    <!-- HOME SCREEN -->
+    <div id="home-screen" class="container app-screen active-screen">
+        <div class="search-box">
+            <span>🔍</span>
+            <input type="text" id="searchInput" placeholder="Search nightmares..." onkeyup="searchStories()">
+        </div>
+
+        <div class="section-title">Featured Nightmares</div>
+        <div class="featured-slider-container" id="featuredSliderContainer">
+            <div class="featured-slides-track" id="featuredSlidesTrack"></div>
+            <div class="slider-dots" id="sliderDots"></div>
+        </div>
+
+        <!-- NEW DAILY STORY SECTION -->
+        <div class="section-title" id="dailySectionTitle">Daily Story</div>
+        <div id="dailyStoryContainer">
+            <!-- Dynamically populated or fallback rendered here -->
+        </div>
+
+        <div class="section-title" id="continueReadingTitle">Continue Reading</div>
+        <div class="continue-card" id="continueCardContainer" onclick="openLastReadingStory()">
+            <div class="continue-card-top">
+                <img id="continueThumb" src="" class="continue-thumb" alt="Story" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'60\' height=\'60\'><rect width=\'100%\' height=\'100%\' fill=\'%23141418\'/></svg>'">
+                <div class="continue-info">
+                    <h4 id="continueTitle">Loading...</h4>
+                    <p id="continueMeta">Select a story to begin</p>
+                </div>
+            </div>
+            <div class="continue-card-bottom">
+                <div class="progress-bar-container">
+                    <div class="progress-fill" id="continueProgressFill" style="width: 0%;"></div>
+                </div>
+                <button class="continue-action-btn" onclick="event.stopPropagation(); openLastReadingStory();">
+                    <span>▶</span> Continue
+                </button>
+            </div>
+        </div>
+
+        <div class="section-title">
+            <span id="catSectionTitle">Categories</span>
+            <span class="view-all" id="viewAllCatsBtn" onclick="switchTab('explore-screen', document.querySelectorAll('.bottom-nav .nav-item')[1])">View All</span>
+        </div>
+        <div class="categories-scroll" id="homeCategoriesScroll"></div>
+
+        <div class="section-title">
+            <span id="trendingSectionTitle">Trending Stories (Auto-Updates)</span>
+            <span class="view-all" id="viewAllTrendingBtn" onclick="switchTab('explore-screen', document.querySelectorAll('.bottom-nav .nav-item')[1])">View All</span>
+        </div>
+        <div class="trending-scroll" id="trendingScroll"></div>
+
+        <!-- OTHERS APPS SECTION -->
+        <div class="others-apps-section">
+            <div class="section-title" style="margin-bottom: 8px;" id="othersAppsTitle">Check out our Others Apps</div>
+            <div class="others-slider-container" id="othersSliderContainer">
+                <div class="others-slides-track" id="othersSlidesTrack"></div>
+                <div class="others-slider-dots" id="othersSliderDots"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- NOTIFICATION SCREEN -->
+    <div id="notification-screen" class="container app-screen">
+        <div class="notification-header-row">
+            <div class="section-title" style="margin:0;">Notifications & Updates</div>
+            <button class="clear-all-btn" onclick="clearAllNotifications()">Clear All</button>
+        </div>
+        <div id="notificationScreenList" style="margin-top: 14px;"></div>
+    </div>
+
+    <!-- EXPLORE SCREEN -->
+    <div id="explore-screen" class="container app-screen">
+        <div id="exploreMainView">
+            <div class="section-title" id="exploreHeaderTitle" style="margin-bottom: 16px;">Explore Categories</div>
+            <div class="category-grid" id="exploreCategoryGrid"></div>
+        </div>
+        <div id="exploreCategoryListView" style="display: none;">
+            <button class="back-to-explore" onclick="hideCategoryStories()">
+                <img src="assets/icon/back.webp" alt="Back" style="width:14px; height:14px; object-fit:contain;" onerror="this.style.display='none'"> Back to Categories
+            </button>
+            <div class="section-title" id="categoryListHeader" style="margin-bottom: 16px;">Category Stories</div>
+            <div id="categoryStoriesContainer"></div>
+        </div>
+    </div>
+
+    <!-- LIBRARY SCREEN -->
+    <div id="library-screen" class="container app-screen">
+        <div class="library-tabs">
+            <div class="lib-tab active" id="tabBookmarks" onclick="switchLibraryTab('bookmarks', this)">Bookmarks</div>
+            <div class="lib-tab" id="tabHistory" onclick="switchLibraryTab('history', this)">History</div>
+            <div class="lib-tab" id="tabDownloads" onclick="switchLibraryTab('downloads', this)">Downloads</div>
+        </div>
+        <div id="libraryStoriesList" style="margin-top: 14px;"></div>
+    </div>
+
+    <!-- PROFILE SCREEN -->
+    <div id="profile-screen" class="app-screen" style="padding: 0; max-width: 600px; margin: 0 auto;">
+        <div class="profile-main-frame">
+            <div class="profile-header-card" id="profileHeaderCard">
+                <div class="profile-avatar-wrapper">
+                    <img id="profileAvatarDisplay" src="profile_avtar/p01.webp" class="profile-avatar" alt="Avatar" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'100\' height=\'100\'><circle cx=\'50\' cy=\'50\' r=\'50\' fill=\'%23141418\'/></svg>'">
+                    <div class="profile-avatar-edit-badge" onclick="openEditProfileModal()">✏️</div>
+                </div>
+                <div class="profile-user-details">
+                    <div class="profile-name" id="profileNameDisplay">Dark Reader</div>
+                    <div class="profile-email" id="profileEmailDisplay">Guest User</div>
+                    <div class="profile-badge-pill">💀 <span id="profileUserTag">Dark Soul</span></div>
+                    <div class="profile-bio" id="profileBioDisplay">"Welcome to Dark Tales"</div>
+                </div>
+            </div>
+
+            <div class="profile-stats-container">
+                <div class="stat-item">
+                    <img src="stats/story_read.webp" class="stat-icon" alt="Read" onerror="this.replaceWith(Object.assign(document.createElement('span'), {className: 'stat-icon', textContent: '📖'}))">
+                    <h3 id="statStoriesRead">15</h3>
+                    <p id="statLabelRead">Stories Read</p>
+                </div>
+                <div class="stat-item">
+                    <img src="stats/reading_time.webp" class="stat-icon" alt="Time" onerror="this.replaceWith(Object.assign(document.createElement('span'), {className: 'stat-icon', textContent: '⏰'}))">
+                    <h3 id="statReadingTime">12h</h3>
+                    <p id="statLabelTime">Time</p>
+                </div>
+                <div class="stat-item">
+                    <img src="stats/favorites.webp" class="stat-icon" alt="Favorites" onerror="this.replaceWith(Object.assign(document.createElement('span'), {className: 'stat-icon', textContent: '❤️'}))">
+                    <h3 id="statBookmarks">7</h3>
+                    <p id="statLabelBookmarks">Fav</p>
+                </div>
+                <div class="stat-item">
+                    <img src="stats/streak.webp" class="stat-icon" alt="Streak" onerror="this.replaceWith(Object.assign(document.createElement('span'), {className: 'stat-icon', textContent: '🔥'}))">
+                    <h3 id="statStreak">12</h3>
+                    <p id="statLabelStreak">Streak</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="profile-menu-list">
+            <div class="profile-menu-item" onclick="openAchievementsModal()">
+                <div class="profile-menu-left">
+                    <img src="assets/icon/achievements.webp" class="profile-menu-icon" alt="Achievements" onerror="this.replaceWith(Object.assign(document.createElement('span'), {textContent: '🏆'}))">
+                    <span id="menuAchieve">Achievements</span>
+                </div>
+                <span>›</span>
+            </div>
+            <div class="profile-menu-item" onclick="switchLibraryTab('bookmarks', document.querySelectorAll('.lib-tab')[0]); switchTab('library-screen', document.querySelectorAll('.bottom-nav .nav-item')[2]);">
+                <div class="profile-menu-left">
+                    <img src="assets/icon/favorites.webp" class="profile-menu-icon" alt="Favorites" onerror="this.replaceWith(Object.assign(document.createElement('span'), {textContent: '❤️'}))">
+                    <span id="menuFavorites">Favorite Stories</span>
+                </div>
+                <span>›</span>
+            </div>
+            <div class="profile-menu-item" onclick="switchLibraryTab('history', document.querySelectorAll('.lib-tab')[1]); switchTab('library-screen', document.querySelectorAll('.bottom-nav .nav-item')[2]);">
+                <div class="profile-menu-left">
+                    <img src="assets/icon/history.webp" class="profile-menu-icon" alt="History" onerror="this.replaceWith(Object.assign(document.createElement('span'), {textContent: '🕒'}))">
+                    <span id="menuHistory">Reading History</span>
+                </div>
+                <span>›</span>
+            </div>
+            <div class="profile-menu-item" onclick="switchLibraryTab('downloads', document.querySelectorAll('.lib-tab')[2]); switchTab('library-screen', document.querySelectorAll('.bottom-nav .nav-item')[2]);">
+                <div class="profile-menu-left">
+                    <img src="assets/icon/download.webp" class="profile-menu-icon" alt="Downloads" onerror="this.replaceWith(Object.assign(document.createElement('span'), {textContent: '📥'}))">
+                    <span id="menuDownloads">Downloads</span>
+                </div>
+                <span>›</span>
+            </div>
+            <div class="profile-menu-item" onclick="openPreferencesModal()">
+                <div class="profile-menu-left">
+                    <img src="assets/icon/preferences.webp" class="profile-menu-icon" alt="Preferences" onerror="this.replaceWith(Object.assign(document.createElement('span'), {textContent: '⚙️'}))">
+                    <span id="menuPrefs">Reading Preferences</span>
+                </div>
+                <span>›</span>
+            </div>
+            <div class="profile-menu-item" onclick="switchTab('notification-screen', null)">
+                <div class="profile-menu-left">
+                    <img src="assets/icon/notification.webp" class="profile-menu-icon" alt="Notifications" onerror="this.replaceWith(Object.assign(document.createElement('span'), {textContent: '🔔'}))">
+                    <span id="menuNotifications">Notifications</span>
+                </div>
+                <span>›</span>
+            </div>
+            <div class="profile-menu-item" onclick="toggleAppLanguage()">
+                <div class="profile-menu-left">
+                    <img src="assets/icon/language.webp" class="profile-menu-icon" alt="Language" onerror="this.replaceWith(Object.assign(document.createElement('span'), {textContent: '🌐'}))">
+                    <span id="menuLanguage">App Language (EN/HI)</span>
+                </div>
+                <span id="currentLangIndicator" style="font-size: 12px; color: var(--primary-red); font-weight: bold;">EN</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- BOTTOM NAVIGATION BAR -->
+    <nav class="bottom-nav">
+        <button class="nav-item active" onclick="switchTab('home-screen', this)">
+            <img src="assets/icon/home.webp" alt="Home" onerror="this.onerror=null; this.replaceWith(Object.assign(document.createElement('div'), {textContent: '🏠'}))">
+            <div id="navHome">Home</div>
+        </button>
+        <button class="nav-item" onclick="switchTab('explore-screen', this)">
+            <img src="assets/icon/explore.webp" alt="Explore" onerror="this.onerror=null; this.replaceWith(Object.assign(document.createElement('div'), {textContent: '🧭'}))">
+            <div id="navExplore">Explore</div>
+        </button>
+        <button class="nav-item" onclick="switchTab('library-screen', this)">
+            <img src="assets/icon/library.webp" alt="Library" onerror="this.onerror=null; this.replaceWith(Object.assign(document.createElement('div'), {textContent: '📚'}))">
+            <div id="navLibrary">Library</div>
+        </button>
+        <button class="nav-item" onclick="switchTab('profile-screen', this)">
+            <img src="assets/icon/profile.webp" alt="Profile" onerror="this.onerror=null; this.replaceWith(Object.assign(document.createElement('div'), {textContent: '👤'}))">
+            <div id="navProfile">Profile</div>
+        </button>
+    </nav>
+
+    <!-- Reader Screen -->
+    <div id="reader-view" onscroll="updateProgressBar()">
+        <div id="progress-bar"></div>
+        <div class="reader-wrapper">
+            <div class="reader-header">
+                <button class="back-btn" id="readerBackBtn" onclick="closeReader()">
+                    <img src="assets/icon/back.webp" alt="Back" style="width:12px; height:12px; object-fit:contain; vertical-align:middle;" onerror="this.style.display='none'"> Escape
+                </button>
+                <div style="display:flex; gap:6px; align-items:center;">
+                    <button class="reader-save-btn" id="readerSaveBtn" onclick="toggleCurrentBookmark()">⭐ Save</button>
+                    <button class="ctrl-btn" onclick="adjustFontSize(1)">A+</button>
+                    <button class="ctrl-btn" onclick="adjustFontSize(-1)">A-</button>
+                    <button class="lang-toggle" id="readerLangToggleBtn" onclick="toggleStoryLanguage()">HI/EN</button>
+                </div>
+            </div>
+
+            <div class="reader-title" id="readTitle">Story Title</div>
+
+            <div class="reader-banner-container">
+                <img id="readThumbnail" src="" class="reader-banner-img" alt="Story Banner" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'600\' height=\'180\'><rect width=\'100%\' height=\'100%\' fill=\'%23141418\'/></svg>'">
+            </div>
+
+            <div class="reader-content" id="readContent"></div>
+        </div>
+    </div>
+
+    <!-- Edit Profile Modal -->
+    <div id="editProfileModal" class="app-modal" onclick="closeEditModalOutside(event)">
+        <div class="edit-modal-card">
+            <h3 id="editModalTitle">Edit Profile</h3>
+            <div class="form-group">
+                <label id="labelNameInput">Your Name</label>
+                <input type="text" id="editNameInput" placeholder="Enter name...">
+            </div>
+            <div class="form-group">
+                <label id="labelEmailInput">Email Address</label>
+                <input type="email" id="editEmailInput" placeholder="Enter email...">
+            </div>
+            <div class="form-group">
+                <label id="labelBioInput">Bio / Tagline</label>
+                <textarea id="editBioInput" rows="2" placeholder="Enter bio..."></textarea>
+            </div>
+            <div class="form-group">
+                <label id="labelAvatarPicker">Choose Avatar</label>
+                <div class="avatar-picker-grid" id="avatarPickerGrid"></div>
+            </div>
+            <div class="form-group">
+                <label id="labelBgPicker">Choose Background</label>
+                <div class="bg-picker-grid" id="bgPickerGrid"></div>
+            </div>
+            <div class="modal-actions">
+                <button class="btn-cancel" id="btnCancelEdit" onclick="closeEditProfileModal()">Cancel</button>
+                <button class="btn-save" id="btnSaveEdit" onclick="saveProfileChanges()">Save Changes</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- General Purpose Modal -->
+    <div id="appModal" class="app-modal" onclick="closeModal(event)">
+        <div class="modal-card">
+            <h3 id="modalTitle">Notice</h3>
+            <div id="modalBodyContent">
+                <p id="modalDesc">Message text here...</p>
+            </div>
+            <button class="modal-btn" style="margin-top: 15px;" onclick="closeAppModal()">OK</button>
+        </div>
+    </div>
+
+    <script>
+        const translations = {
+            en: {
+                logo: "DARK TALES",
+                searchPlaceholder: "Search nightmares...",
+                featBadge: "Featured Story",
+                readNow: "READ NOW",
+                continueReading: "Continue Reading",
+                categories: "Categories",
+                viewAll: "View All",
+                trending: "Trending Stories",
+                exploreHeader: "Explore Categories",
+                tabBookmarks: "Bookmarks",
+                tabHistory: "History",
+                tabDownloads: "Downloads",
+                storiesAvailable: "Stories available",
+                noItems: "No items found in this section...",
+                profileName: "Dark Reader",
+                editProfile: "Edit Profile",
+                statRead: "Stories Read",
+                statTime: "Time",
+                statBookmarks: "Fav",
+                statStreak: "Streak",
+                menuAchieve: "Achievements",
+                menuFavorites: "Favorite Stories",
+                menuHistory: "Reading History",
+                menuDownloads: "Downloads",
+                menuPrefs: "Reading Preferences",
+                menuNotifications: "Notifications",
+                menuLanguage: "App Language (EN/HI)",
+                navHome: "Home",
+                navExplore: "Explore",
+                navLibrary: "Library",
+                navProfile: "Profile",
+                backEscape: "Escape",
+                saveBtn: "⭐ Save",
+                savedBtn: "★ Saved",
+                noNotif: "No new notifications! The darkness is quiet tonight.",
+                achieveTitle: "Achievements",
+                achieveDesc: "You have unlocked 5 Horror Badges.",
+                prefsTitle: "Reading Preferences",
+                prefsDesc: "Dark Mode Active. Blood Glow Enabled.",
+                editModalTitle: "Edit Profile",
+                labelNameInput: "Your Name",
+                labelEmailInput: "Email Address",
+                labelBioInput: "Bio / Tagline",
+                labelAvatarPicker: "Choose Avatar",
+                labelBgPicker: "Choose Background",
+                btnCancelEdit: "Cancel",
+                btnSaveEdit: "Save Changes",
+                othersAppsTitle: "Check out our Others Apps",
+                installApp: "Install",
+                dailyTitle: "Daily Story",
+                dailyBadge: "Daily Nightmare",
+                noDaily: "No Daily Story Available"
+            },
+            hi: {
+                logo: "DARK TALES",
+                searchPlaceholder: "डरावनी कहानियां खोजें...",
+                featBadge: "विशेष कहानी",
+                readNow: "अभी पढ़ें",
+                continueReading: "पढ़ना जारी रखें",
+                categories: "श्रेणियाँ",
+                viewAll: "सभी देखें",
+                trending: "लोकप्रिय कहानियां",
+                exploreHeader: "श्रेणियों का अन्वेषण करें",
+                tabBookmarks: "बुकमार्क",
+                tabHistory: "इतिहास",
+                tabDownloads: "डाउनलोड",
+                storiesAvailable: "कहानियां उपलब्ध हैं",
+                noItems: "इस अनुभाग में कोई वस्तु नहीं मिली...",
+                profileName: "डार्क रीडर",
+                editProfile: "प्रोफ़ाइल संपादित करें",
+                statRead: "पढ़ी गई कहानियां",
+                statTime: "समय",
+                statBookmarks: "पसंदीदा",
+                statStreak: "स्ट्रीक",
+                menuAchieve: "उपलब्धियां",
+                menuFavorites: "पसंदीदा कहानियां",
+                menuHistory: "पढ़ने का इतिहास",
+                menuDownloads: "डाउनलोड",
+                menuPrefs: "पढ़ने की प्राथमिकताएं",
+                menuNotifications: "सूचनाएं",
+                menuLanguage: "ऐप भाषा (EN/HI)",
+                navHome: "होम",
+                navExplore: "एक्सप्लोर",
+                navLibrary: "लाइब्रेरी",
+                navProfile: "प्रोफ़ाइल",
+                backEscape: "वापस",
+                saveBtn: "⭐ सेव करें",
+                savedBtn: "★ सेव किया गया",
+                noNotif: "कोई नई सूचना नहीं!",
+                achieveTitle: "उपलब्धियां",
+                achieveDesc: "आपने 5 हॉरर बैज अनलॉक किए हैं।",
+                prefsTitle: "पढ़ने की प्राथमिकताएं",
+                prefsDesc: "डार्क मोड सक्रिय।",
+                editModalTitle: "प्रोफ़ाइल संपादित करें",
+                labelNameInput: "आपका नाम",
+                labelEmailInput: "ईमेल पता",
+                labelBioInput: "बायो",
+                labelAvatarPicker: "अवतार चुनें",
+                labelBgPicker: "पृष्ठभूमि चुनें",
+                btnCancelEdit: "रद्द करें",
+                btnSaveEdit: "सहेजें",
+                othersAppsTitle: "हमारे अन्य ऐप्स भी देखें",
+                installApp: "इंस्टॉल",
+                dailyTitle: "दैनिक कहानी",
+                dailyBadge: "दैनिक डरावनी कहानी",
+                noDaily: "कोई दैनिक कहानी उपलब्ध नहीं है"
+            }
+        };
+
+        const FALLBACK_IMG = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI1MCIgaGVpZ2h0PSI1MCI+PHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0iIzE0MTQxOCIvPjwvc3ZnPg==";
+        const STORY_BANNER_PATH = "story/banner/";
+        
+        const otherAppsList = [
+            {
+                name: "Vishu Typing",
+                subtitle: "Learn Hindi & English typing master class",
+                image: "appbanner/vishutyping.webp",
+                link: "https://github.com/vishukhan/Vishu-Typing/releases/download/V1.0.0.2/Vishu.Typing.apk"
+            },
+            {
+                name: "Vishu Music",
+                subtitle: "Stream unlimited music and audio tracks",
+                image: "appbanner/vishumusic.webp",
+                link: "https://github.com/vishukhan/Vishu-Music/releases/download/V.0.0.0.1/Vishu.Music.apk"
+            },
+            {
+                name: "City Connect ",
+                subtitle: "Find local shops & services near you",
+                image: "appbanner/cityconnect.webp",
+                link: "https://github.com/vishukhan/City-Connect-App/releases/download/V1.0.0.0/City.Connect.apk"
+            }
+        ];
+
+        let allStories = [];
+        let currentStoryId = null;
+        let appLang = 'en';
+        let storyLang = 'en';
+        let currentFontSize = 16;
+        let favorites = JSON.parse(localStorage.getItem('darktales_favs')) || [1, 2];
+        let historyList = JSON.parse(localStorage.getItem('darktales_history')) || [1];
+
+        let lastReadStory = JSON.parse(localStorage.getItem('darktales_last_read')) || null;
+        let currentScrollPercent = JSON.parse(localStorage.getItem('darktales_scroll_progress')) || {};
+
+        let notificationsList = JSON.parse(localStorage.getItem('darktales_notifications')) || [{
+            id: 1,
+            storyId: 1,
+            storyTitle: "The Whispering Spectre",
+            title_en: "👻 Daily Pick: Aaj ki Horror Story aapka intezar kar rahi hai.",
+            title_hi: "👻 Daily Pick: Aaj ki Horror Story aapka intezar kar rahi hai.",
+            time: "02 Aug, 08:00 AM",
+            read: false
+        }];
+
+        let currentFeaturedIndex = 0;
+        let featuredSliderInterval = null;
+
+        let currentOthersIndex = 0;
+        let othersSliderInterval = null;
+
+        let userProfile = JSON.parse(localStorage.getItem('darktales_user_profile')) || {
+            name: "Dark Reader",
+            email: "Guest User",
+            tag: "Dark Soul",
+            bio: "\"Welcome to Dark Tales\"",
+            avatar: "profile_avtar/p01.webp",
+            background: "profile_bg/p_bg01.webp"
+        };
+
+        let tempSelectedAvatar = userProfile.avatar;
+        let tempSelectedBg = userProfile.background;
+
+        const CURRENT_APP_VERSION = 1;
+
+        // ==========================================
+        // ANDROID / WEVIEW BACK BUTTON NAVIGATION
+        // ==========================================
+        function initHistoryNavigation() {
+            history.replaceState({ screen: "home" }, "", location.href);
+
+            window.addEventListener("popstate", function(event) {
+                const state = event.state;
+
+                if (document.getElementById('editProfileModal').style.display === 'flex') {
+                    document.getElementById('editProfileModal').style.display = 'none';
+                    return;
+                }
+                if (document.getElementById('appModal').style.display === 'flex') {
+                    document.getElementById('appModal').style.display = 'none';
+                    return;
+                }
+
+                if (document.getElementById('reader-view').style.display === 'block') {
+                    closeReaderUIOnly();
+                    return;
+                }
+
+                if (document.getElementById('exploreCategoryListView').style.display === 'block') {
+                    hideCategoryStoriesUIOnly();
+                    return;
+                }
+
+                if (state) {
+                    if (state.screen === "home") {
+                        switchTabUIOnly('home-screen', document.querySelectorAll('.bottom-nav .nav-item')[0]);
+                    } else if (state.screen === "explore") {
+                        switchTabUIOnly('explore-screen', document.querySelectorAll('.bottom-nav .nav-item')[1]);
+                    } else if (state.screen === "library") {
+                        switchTabUIOnly('library-screen', document.querySelectorAll('.bottom-nav .nav-item')[2]);
+                    } else if (state.screen === "profile") {
+                        switchTabUIOnly('profile-screen', document.querySelectorAll('.bottom-nav .nav-item')[3]);
+                    } else if (state.screen === "notifications") {
+                        switchTabUIOnly('notification-screen', null);
+                    }
+                } else {
+                    switchTabUIOnly('home-screen', document.querySelectorAll('.bottom-nav .nav-item')[0]);
+                }
+            });
+        }
+
+        function switchTabUIOnly(screenId, navElement) {
+            document.querySelectorAll('.app-screen').forEach(screen => screen.classList.remove('active-screen'));
+            document.querySelectorAll('.bottom-nav .nav-item').forEach(nav => nav.classList.remove('active'));
+
+            const targetScreen = document.getElementById(screenId);
+            if (targetScreen) targetScreen.classList.add('active-screen');
+            if (navElement) {
+                navElement.classList.add('active');
+            }
+            if (screenId === 'home-screen') {
+                updateContinueReadingUI();
+            }
+            if (screenId === 'explore-screen') {
+                hideCategoryStoriesUIOnly();
+            }
+            if (screenId === 'library-screen') {
+                renderLibrary();
+            }
+            if (screenId === 'notification-screen') {
+                renderNotificationsScreen();
+            }
+            if (screenId === 'profile-screen') {
+                updateProfileStats();
+                renderProfileDataUI();
+            }
+            window.scrollTo(0, 0);
+        }
+
+        function closeReaderUIOnly() {
+            document.body.style.overflow = 'auto';
+            document.getElementById('reader-view').style.display = 'none';
+            currentStoryId = null;
+            updateProfileStats();
+            renderLibrary();
+            updateContinueReadingUI();
+        }
+
+        function hideCategoryStoriesUIOnly() {
+            document.getElementById('exploreCategoryListView').style.display = 'none';
+            document.getElementById('exploreMainView').style.display = 'block';
+        }
+        // ==========================================
+
+        async function checkForAppUpdates() {
+            try {
+                let response = await fetch('https://raw.githubusercontent.com/viralfunfactory001-commits/darktales/refs/heads/main/version.json');
+                if (response.ok) {
+                    let versionData = await response.json();
+                    if (versionData && versionData.versionCode > CURRENT_APP_VERSION) {
+                        showUpdateDialog(versionData);
+                    }
+                }
+            } catch (e) {
+                console.log("App update check skipped or offline.");
+            }
+        }
+
+        function showUpdateDialog(data) {
+            const updateHTML = `
+                <div id="update-modal" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.85); display: flex; justify-content: center; align-items: center; z-index: 9999; padding: 20px;">
+                    <div style="background-color: var(--surface-card); border: 1px solid var(--card-border); border-radius: 16px; padding: 24px; width: 100%; max-width: 350px; text-align: center; box-shadow: 0 8px 30px rgba(0, 0, 0, 0.9);">
+                        <h3 style="color: var(--primary-red); margin-bottom: 12px; font-size: 18px;">Update Available (${data.versionName || 'v1.1'})</h3>
+                        <p style="color: var(--text-muted); font-size: 13px; line-height: 1.5; margin-bottom: 20px;">${data.message || 'Ek naya update uplabdh hai. Behtar experience ke liye abhi update karein.'}</p>
+                        <a href="${data.apkUrl}" target="_blank" style="display: block; background-color: var(--primary-red); color: white; padding: 10px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 13px; box-shadow: 0 0 12px var(--blood-glow); margin-bottom: 10px;">Update Now</a>
+                        ${!data.isMandatory ? '<button onclick="closeUpdateDialog()" style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 12px; margin-top: 5px;">Later</button>' : ''}
+                    </div>
+                </div>
+            `;
+            document.body.insertAdjacentHTML('beforeend', updateHTML);
+        }
+
+        function closeUpdateDialog() {
+            const modal = document.getElementById('update-modal');
+            if (modal) modal.remove();
+        }
+
+        async function loadAllJsonFiles() {
+            let loadedStories = [];
+            let globalIdCounter = 1;
+            const categoryFiles = ['ghost', 'haunted', 'crime', 'demon', 'forest', 'mystery'];
+
+            for (let cat of categoryFiles) {
+                try {
+                    let response = await fetch(`${cat}.json`);
+                    if (response.ok) {
+                        let data = await response.json();
+                        let items = Array.isArray(data) ? data : (data.stories || [data]);
+
+                        items.forEach(item => {
+                            loadedStories.push({
+                                id: globalIdCounter++,
+                                imageName: item.imageName || cat,
+                                category: item.category || cat.replace('_', ' ').toUpperCase(),
+                                title_en: item.title_en || item.title || `${cat} Story`,
+                                title_hi: item.title_hi || item.title || `${cat} कहानी`,
+                                time_en: item.time_en || "10 min read",
+                                time_hi: item.time_hi || "10 मिनट पढ़ें",
+                                rating: item.rating || 4.8,
+                                content_en: item.content_en || item.content || "No content found...",
+                                content_hi: item.content_hi || item.content || "सामग्री उपलब्ध नहीं है..."
+                            });
+                        });
+                    }
+                } catch (e) {
+                    console.log(`Failed to fetch ${cat}.json`);
+                }
+            }
+
+            if (loadedStories.length === 0) {
+                loadedStories = [{
+                        id: 1,
+                        imageName: "ghost",
+                        category: "Ghost Stories",
+                        title_en: "The Whispering Spectre",
+                        title_hi: "गुंजगुनाने वाली आत्मा",
+                        time_en: "8 min read",
+                        time_hi: "8 मिनट पढ़ें",
+                        rating: 4.9,
+                        content_en: "It was past midnight when the whispers started from the empty hallway...",
+                        content_hi: "रात आधी निकल चुकी थी जब खाली कॉरिडोर से आवाज़ें आने लगीं..."
+                    },
+                    {
+                        id: 2,
+                        imageName: "forest",
+                        category: "Forest Stories",
+                        title_en: "The Cursed Woods",
+                        title_hi: "श्रापित जंगल",
+                        time_en: "12 min read",
+                        time_hi: "12 मिनट पढ़ें",
+                        rating: 4.8,
+                        content_en: "Entering the dark forest was a mistake. The trees seemed to close in behind us...",
+                        content_hi: "उस अंधेरे जंगल में कदम रखना एक बड़ी भूल थी..."
+                    }
+                ];
+            }
+
+            allStories = loadedStories;
+            initAppUI();
+            fetchAndRenderDailyStory();
+            initAdvancedNotificationScheduler();
+            initHistoryNavigation();
+        }
+
+        async function fetchAndRenderDailyStory() {
+            const container = document.getElementById('dailyStoryContainer');
+            const t = translations[appLang];
+
+            try {
+                const response = await fetch('daily.json', { cache: "no-store" });
+                if (!response.ok) throw new Error('Failed to load daily.json');
+
+                const data = await response.json();
+                const today = new Date().toLocaleDateString("en-CA", {
+                    timeZone: "Asia/Kolkata"
+                });
+
+                let item = null;
+                if (Array.isArray(data)) {
+                    item = data.find(story => story.date === today);
+                    if (!item && data.length > 0) {
+                        item = [...data].sort((a, b) => b.date.localeCompare(a.date))[0];
+                    }
+                } else {
+                    item = data;
+                }
+
+                if (!item) throw new Error("No daily story found");
+
+                const dailyId = 9999;
+                const title = typeof item.title === "object" ? (item.title[appLang] || item.title.en || item.title.hi || "Daily Horror") : (item.title || item.title_en || "Daily Horror");
+                const desc = typeof item.description === "object" ? (item.description[appLang] || item.description.en || item.description.hi || "A new horror story...") : (item.description || item.description_en || "A new horror story...");
+                const imagePath = item.image || "images/daily1.webp";
+                const targetUrl = item.url || item.jsonPath || "stories/day1.json";
+
+                const dailyStoryObj = {
+                    id: dailyId,
+                    imageName: imagePath,
+                    category: item.category || "Daily Special",
+                    title_en: typeof item.title === "object" ? (item.title.en || title) : title,
+                    title_hi: typeof item.title === "object" ? (item.title.hi || title) : title,
+                    time_en: item.time_en || "5 min read",
+                    time_hi: item.time_hi || "5 मिनट पढ़ें",
+                    rating: item.rating || 5.0,
+                    content_en: typeof item.description === "object" ? (item.description.en || desc) : (item.description || desc),
+                    content_hi: typeof item.description === "object" ? (item.description.hi || desc) : (item.description || desc)
+                };
+
+                const existingIndex = allStories.findIndex(s => s.id === dailyId);
+                if (existingIndex >= 0) {
+                    allStories[existingIndex] = dailyStoryObj;
+                } else {
+                    allStories.push(dailyStoryObj);
+                }
+
+                container.innerHTML = `
+                    <div class="daily-story-card" onclick="fetchAndOpenDailyStoryTarget('${targetUrl}', ${dailyId})">
+                        <img src="${imagePath}" class="daily-story-thumb" alt="Daily Story" onerror="this.src='${FALLBACK_IMG}'">
+                        <div class="daily-story-info">
+                            <span class="daily-story-badge">${t.dailyBadge}</span>
+                            <div class="daily-story-title">${title}</div>
+                            <div class="daily-story-desc">${desc}</div>
+                            <button class="read-now-btn" style="padding:5px 12px;font-size:11px;width:max-content;" onclick="event.stopPropagation();fetchAndOpenDailyStoryTarget('${targetUrl}', ${dailyId});">${t.readNow}</button>
+                        </div>
+                    </div>
+                `;
+            } catch (e) {
+                console.error(e);
+                container.innerHTML = `<div class="daily-story-error">👻 ${t.noDaily}</div>`;
+            }
+        }
+
+        async function fetchAndOpenDailyStoryTarget(targetPath, defaultId) {
+            try {
+                let res = await fetch(targetPath);
+                if (res.ok) {
+                    let storyData = await res.json();
+                    let customId = 8888;
+                    let customStoryObj = {
+                        id: customId,
+                        imageName: storyData.image || storyData.imageName || "ghost",
+                        category: storyData.category || "Daily Special",
+                        title_en: storyData.title?.en || storyData.title_en || storyData.title || "Daily Story",
+                        title_hi: storyData.title?.hi || storyData.title_hi || storyData.title || "दैनिक कहानी",
+                        time_en: storyData.time_en || "5 min read",
+                        time_hi: storyData.time_hi || "5 मिनट पढ़ें",
+                        rating: storyData.rating || 5.0,
+                        content_en: storyData.story?.en || storyData.content_en || storyData.content || "Loading content...",
+                        content_hi: storyData.story?.hi || storyData.content_hi || storyData.content || "सामग्री लोड हो रही है..."
+                    };
+
+                    const index = allStories.findIndex(s => s.id === customId);
+                    if (index === -1) {
+                        allStories.push(customStoryObj);
+                    } else {
+                        allStories[index] = customStoryObj;
+                    }
+
+                    openReader(customId);
+                    return;
+                }
+            } catch (err) {
+                console.log("Direct target fetch failed:", err);
+            }
+            openReader(defaultId);
+        }
+
+        function initApp() {
+            loadAllJsonFiles();
+            checkForAppUpdates();
+        }
+
+        function initAdvancedNotificationScheduler() {
+            updateNotificationBadgeState();
+            checkAndScheduleSmartNotifications();
+            setInterval(checkAndScheduleSmartNotifications, 60000);
+        }
+
+        function checkAndScheduleSmartNotifications() {
+            if (allStories.length === 0) return;
+            const now = new Date();
+            const currentHour = now.getHours();
+            const currentDay = now.getDay();
+            const lastTriggerDate = localStorage.getItem('darktales_last_notif_date') || '';
+            const todayStr = now.toDateString();
+
+            if (currentHour >= 20 && currentHour <= 22 && lastTriggerDate !== todayStr) {
+                triggerNotificationItem("Daily Update", "👻 Aaj ki Horror Story aapka intezar kar rahi hai.");
+                localStorage.setItem('darktales_last_notif_date', todayStr);
+            }
+
+            const lastWeekendNotif = localStorage.getItem('darktales_last_weekend_date') || '';
+            if ((currentDay === 6 || currentDay === 0) && lastWeekendNotif !== todayStr) {
+                triggerNotificationItem("Weekend Reminder", "🌙 Weekend Horror Marathon shuru karo!");
+                localStorage.setItem('darktales_last_weekend_date', todayStr);
+            }
+
+            const lastContinueCheck = localStorage.getItem('darktales_last_continue_check') || '';
+            if (historyList.length > 0 && lastContinueCheck !== todayStr) {
+                triggerNotificationItem("Continue Reading", "📖 Aapki pichhli story abhi adhuri hai.");
+                localStorage.setItem('darktales_last_continue_check', todayStr);
+            }
+        }
+
+        function triggerNotificationItem(type, messageText) {
+            let randomStory = allStories[Math.floor(Math.random() * allStories.length)];
+            let storyTitle = randomStory ? (appLang === 'en' ? randomStory.title_en : randomStory.title_hi) : "Horror Story";
+
+            let nowTime = new Date();
+            let timeString = nowTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) + ", " + nowTime.toLocaleDateString([], { month: 'short', day: 'numeric' });
+
+            let newNotif = {
+                id: Date.now(),
+                storyId: randomStory ? randomStory.id : 1,
+                storyTitle: storyTitle,
+                title_en: `${type}: ${messageText}`,
+                title_hi: `${type}: ${messageText}`,
+                time: timeString,
+                read: false
+            };
+            notificationsList.unshift(newNotif);
+            localStorage.setItem('darktales_notifications', JSON.stringify(notificationsList));
+            updateNotificationBadgeState();
+            renderNotificationsScreen();
+        }
+
+        function updateNotificationBadgeState() {
+            const bellBtn = document.getElementById('notifBellBtn');
+            const hasUnread = notificationsList.some(n => !n.read);
+            if (hasUnread) {
+                bellBtn.classList.add('has-unread');
+            } else {
+                bellBtn.classList.remove('has-unread');
+            }
+        }
+
+        function clearAllNotifications() {
+            notificationsList = [];
+            localStorage.setItem('darktales_notifications', JSON.stringify(notificationsList));
+            updateNotificationBadgeState();
+            renderNotificationsScreen();
+        }
+
+        function renderNotificationsScreen() {
+            const container = document.getElementById('notificationScreenList');
+            const t = translations[appLang];
+            container.innerHTML = '';
+
+            if (notificationsList.length === 0) {
+                container.innerHTML = `<p style="color:var(--text-muted); text-align:center; padding:30px;">${t.noNotif}</p>`;
+                return;
+            }
+
+            notificationsList.forEach(notif => {
+                let title = appLang === 'en' ? notif.title_en : notif.title_hi;
+                let linkedStoryName = notif.storyTitle ? notif.storyTitle : "Featured Story";
+                let item = document.createElement('div');
+                item.className = 'notif-screen-item';
+                item.onclick = () => {
+                    notif.read = true;
+                    localStorage.setItem('darktales_notifications', JSON.stringify(notificationsList));
+                    updateNotificationBadgeState();
+                    openReader(notif.storyId);
+                };
+                item.innerHTML = `
+                    <h4>🔥 ${title}</h4>
+                    <p>📖 <b>Story:</b> ${linkedStoryName}</p>
+                    <div class="notif-time">⏱️ ${notif.time}</div>
+                `;
+                container.appendChild(item);
+            });
+        }
+
+        function initAppUI() {
+            updateStaticTexts();
+            renderFeaturedSlider();
+            startFeaturedAutoSwipe();
+            renderOthersAppsSlider();
+            startOthersAutoSwipe();
+            renderHomeCategories();
+            renderTrendingStories();
+            renderExploreCategories();
+            renderLibrary();
+            renderNotificationsScreen();
+            updateProfileStats();
+            updateContinueReadingUI();
+            renderProfileDataUI();
+        }
+
+        function renderProfileDataUI() {
+            document.getElementById('profileNameDisplay').innerText = userProfile.name;
+            document.getElementById('profileEmailDisplay').innerText = userProfile.email;
+            document.getElementById('profileUserTag').innerText = userProfile.tag;
+            document.getElementById('profileBioDisplay').innerText = userProfile.bio;
+            document.getElementById('profileAvatarDisplay').src = userProfile.avatar;
+            document.getElementById('profileHeaderCard').style.background = `linear-gradient(180deg, rgba(0, 0, 0, 0.4) 0%, rgba(5, 5, 7, 0.85) 100%), linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)), url('${userProfile.background}') center/cover`;
+        }
+
+        function openEditProfileModal() {
+            tempSelectedAvatar = userProfile.avatar;
+            tempSelectedBg = userProfile.background;
+            document.getElementById('editNameInput').value = userProfile.name;
+            document.getElementById('editEmailInput').value = userProfile.email;
+            document.getElementById('editBioInput').value = userProfile.bio;
+
+            buildAvatarPickerOptions();
+            buildBgPickerOptions();
+
+            document.getElementById('editProfileModal').style.display = 'flex';
+            history.pushState({ screen: "edit-profile-modal" }, "", "#edit-profile");
+        }
+
+        function closeEditProfileModal() {
+            document.getElementById('editProfileModal').style.display = 'none';
+        }
+
+        function closeEditModalOutside(e) {
+            if (e.target.id === 'editProfileModal') {
+                closeEditProfileModal();
+                if (history.state && history.state.screen === "edit-profile-modal") {
+                    history.back();
+                }
+            }
+        }
+
+        function buildAvatarPickerOptions() {
+            const grid = document.getElementById('avatarPickerGrid');
+            grid.innerHTML = '';
+            const avatars = ['profile_avtar/p01.webp', 'profile_avtar/p02.webp', 'profile_avtar/p03.webp', 'profile_avtar/p04.webp', 'profile_avtar/p05.webp', 'profile_avtar/p06.webp', 'profile_avtar/p07.webp'];
+
+            avatars.forEach(avPath => {
+                let img = document.createElement('img');
+                img.src = avPath;
+                img.className = `picker-avatar-item ${tempSelectedAvatar === avPath ? 'selected' : ''}`;
+                img.onerror = function() { this.src = FALLBACK_IMG; };
+                img.onclick = () => {
+                    tempSelectedAvatar = avPath;
+                    document.querySelectorAll('.picker-avatar-item').forEach(el => el.classList.remove('selected'));
+                    img.classList.add('selected');
+                };
+                grid.appendChild(img);
+            });
+        }
+
+        function buildBgPickerOptions() {
+            const grid = document.getElementById('bgPickerGrid');
+            grid.innerHTML = '';
+            const bgs = ['profile_bg/p_bg01.webp', 'profile_bg/p_bg02.webp', 'profile_bg/p_bg03.webp', 'profile_bg/p_bg04.webp', 'profile_bg/p_bg05.webp', 'profile_bg/p_bg06.webp', 'profile_bg/p_bg07.webp', 'profile_bg/p_bg08.webp', 'profile_bg/p_bg09.webp', 'profile_bg/p_bg10.webp', 'profile_bg/p_bg11.webp', 'profile_bg/p_bg12.webp'];
+
+            bgs.forEach(bgPath => {
+                let img = document.createElement('img');
+                img.src = bgPath;
+                img.className = `picker-bg-item ${tempSelectedBg === bgPath ? 'selected' : ''}`;
+                img.onerror = function() { this.src = FALLBACK_IMG; };
+                img.onclick = () => {
+                    tempSelectedBg = bgPath;
+                    document.querySelectorAll('.picker-bg-item').forEach(el => el.classList.remove('selected'));
+                    img.classList.add('selected');
+                };
+                grid.appendChild(img);
+            });
+        }
+
+        function saveProfileChanges() {
+            let newName = document.getElementById('editNameInput').value.trim();
+            let newEmail = document.getElementById('editEmailInput').value.trim();
+            let newBio = document.getElementById('editBioInput').value.trim();
+
+            if (newName) userProfile.name = newName;
+            if (newEmail) userProfile.email = newEmail;
+            if (newBio) userProfile.bio = newBio;
+
+            userProfile.avatar = tempSelectedAvatar;
+            userProfile.background = tempSelectedBg;
+
+            localStorage.setItem('darktales_user_profile', JSON.stringify(userProfile));
+            renderProfileDataUI();
+            closeEditProfileModal();
+            if (history.state && history.state.screen === "edit-profile-modal") {
+                history.back();
+            }
+        }
+
+        // 1. Hourly Featured Stories Selection Logic (Fisher-Yates Shuffle + LocalStorage)
+function getHourlyFeaturedStories() {
+    const hourKey = Math.floor(Date.now() / (60 * 60 * 1000));
+    let saved = null;
+
+    try {
+        saved = JSON.parse(localStorage.getItem("featuredStoriesData"));
+    } catch (e) {}
+
+    if (
+        saved &&
+        saved.hourKey === hourKey &&
+        Array.isArray(saved.storyIds)
+    ) {
+        const existingStories = saved.storyIds
+            .map(id => allStories.find(s => s.id === id))
+            .filter(Boolean);
+
+        if (existingStories.length > 0) {
+            return existingStories;
+        }
+    }
+
+    const shuffled = [...allStories];
+
+    for (let i = shuffled.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+
+    const selected = shuffled.slice(0, Math.min(5, shuffled.length));
+
+    try {
+        localStorage.setItem(
+            "featuredStoriesData",
+            JSON.stringify({
+                hourKey: hourKey,
+                storyIds: selected.map(s => s.id)
+            })
+        );
+    } catch (e) {}
+
+    return selected;
+}
+
+// 2. Updated renderFeaturedSlider Function (Replaced fixed/old slice with getHourlyFeaturedStories)
+function renderFeaturedSlider() {
+    const track = document.getElementById('featuredSlidesTrack');
+    const dotsContainer = document.getElementById('sliderDots');
+    if (!track || !dotsContainer) return;
+    
+    track.innerHTML = '';
+    dotsContainer.innerHTML = '';
+
+    if (allStories.length === 0) return;
+    
+    // Hourly random featured stories
+    const featuredItems = getHourlyFeaturedStories();
+
+    featuredItems.forEach((feat, idx) => {
+        const title = appLang === 'en' ? feat.title_en : feat.title_hi;
+        const snippet = appLang === 'en' ? feat.content_en.substring(0, 80) + '...' : feat.content_hi.substring(0, 80) + '...';
+        const t = translations[appLang];
+
+        const slide = document.createElement('div');
+        slide.className = 'featured-banner';
+        let bgSource = feat.imageName && feat.imageName.includes('/') ? feat.imageName : `${STORY_BANNER_PATH}${feat.imageName}.webp`;
+        slide.style.backgroundImage = `linear-gradient(180deg, rgba(20,20,24,0.6) 0%, rgba(14,14,17,0.9) 100%), url('${bgSource}')`;
+        slide.innerHTML = `
+            <span class="featured-badge">${t.featBadge} #${idx + 1}</span>
+            <div class="featured-title">${title}</div>
+            <div class="featured-snippet">${snippet}</div>
+            <button class="read-now-btn" onclick="openReader(${feat.id})">${t.readNow}</button>
+        `;
+        track.appendChild(slide);
+
+        const dot = document.createElement('div');
+        dot.className = `slider-dot ${idx === currentFeaturedIndex ? 'active' : ''}`;
+        dot.onclick = () => setFeaturedSlide(idx);
+        dotsContainer.appendChild(dot);
+    });
+}
+
+// 3. Hourly Auto-Refresh Timer (Add this inside your app initialization or setup)
+setInterval(() => {
+    // Renders/checks if the hour key has changed without causing unnecessary UI jumps if the hour is same
+    const currentHourKey = Math.floor(Date.now() / (60 * 60 * 1000));
+    try {
+        let saved = JSON.parse(localStorage.getItem("featuredStoriesData"));
+        if (!saved || saved.hourKey !== currentHourKey) {
+            renderFeaturedSlider();
+        }
+    } catch (e) {
+        renderFeaturedSlider();
+    }
+}, 60 * 1000);
+
+
+        function setFeaturedSlide(index) {
+            const track = document.getElementById('featuredSlidesTrack');
+            const dots = document.querySelectorAll('.slider-dot');
+            if (dots.length === 0) return;
+            currentFeaturedIndex = index;
+            if (currentFeaturedIndex >= dots.length) currentFeaturedIndex = 0;
+            if (currentFeaturedIndex < 0) currentFeaturedIndex = dots.length - 1;
+
+            track.style.transform = `translateX(-${currentFeaturedIndex * 100}%)`;
+            dots.forEach((d, i) => {
+                d.classList.toggle('active', i === currentFeaturedIndex);
+            });
+        }
+
+        function startFeaturedAutoSwipe() {
+            if (featuredSliderInterval) clearInterval(featuredSliderInterval);
+            featuredSliderInterval = setInterval(() => {
+                currentFeaturedIndex++;
+                const dots = document.querySelectorAll('.slider-dot');
+                if (dots.length > 0) {
+                    if (currentFeaturedIndex >= dots.length) currentFeaturedIndex = 0;
+                    setFeaturedSlide(currentFeaturedIndex);
+                }
+            }, 4000);
+        }
+
+        function renderOthersAppsSlider() {
+            const track = document.getElementById('othersSlidesTrack');
+            const dotsContainer = document.getElementById('othersSliderDots');
+            track.innerHTML = '';
+            dotsContainer.innerHTML = '';
+            const t = translations[appLang];
+
+            otherAppsList.forEach((app, idx) => {
+                const slide = document.createElement('div');
+                slide.className = 'other-app-banner';
+                slide.style.backgroundImage = `url('${app.image}')`;
+                slide.onclick = () => { window.location.href = app.link; };
+                slide.innerHTML = `
+                    <div class="other-app-overlay"></div>
+                    <div class="other-app-content">
+                        <div class="other-app-info">
+                            <h4>📱 ${app.name}</h4>
+                            <p>${app.subtitle}</p>
+                        </div>
+                        <button class="other-app-btn" onclick="event.stopPropagation(); window.location.href='${app.link}';">${t.installApp}</button>
+                    </div>
+                `;
+                track.appendChild(slide);
+
+                const dot = document.createElement('div');
+                dot.className = `others-slider-dot ${idx === currentOthersIndex ? 'active' : ''}`;
+                dot.onclick = () => setOthersSlide(idx);
+                dotsContainer.appendChild(dot);
+            });
+        }
+
+        function setOthersSlide(index) {
+            const track = document.getElementById('othersSlidesTrack');
+            const dots = document.querySelectorAll('.others-slider-dot');
+            if (dots.length === 0) return;
+            currentOthersIndex = index;
+            if (currentOthersIndex >= dots.length) currentOthersIndex = 0;
+            if (currentOthersIndex < 0) currentOthersIndex = dots.length - 1;
+
+            track.style.transform = `translateX(-${currentOthersIndex * 100}%)`;
+            dots.forEach((d, i) => {
+                d.classList.toggle('active', i === currentOthersIndex);
+            });
+        }
+
+        function startOthersAutoSwipe() {
+            if (othersSliderInterval) clearInterval(othersSliderInterval);
+            othersSliderInterval = setInterval(() => {
+                currentOthersIndex++;
+                const dots = document.querySelectorAll('.others-slider-dot');
+                if (dots.length > 0) {
+                    if (currentOthersIndex >= dots.length) currentOthersIndex = 0;
+                    setOthersSlide(currentOthersIndex);
+                }
+            }, 3500);
+        }
+
+        function updateContinueReadingUI() {
+            if (allStories.length === 0) return;
+
+            let targetStory = null;
+            if (lastReadStory !== null) {
+                targetStory = allStories.find(s => s.id === lastReadStory);
+            }
+            if (!targetStory) {
+                targetStory = allStories[Math.min(1, allStories.length - 1)];
+            }
+
+            let progressPercent = currentScrollPercent[targetStory.id] || 65;
+
+            document.getElementById('continueTitle').innerText = appLang === 'en' ? targetStory.title_en : targetStory.title_hi;
+            document.getElementById('continueMeta').innerText = `${targetStory.category} • ${Math.round(progressPercent)}% Complete`;
+            let thumbSource = targetStory.imageName && targetStory.imageName.includes('/') ? targetStory.imageName : `${STORY_BANNER_PATH}${targetStory.imageName}.webp`;
+            document.getElementById('continueThumb').src = thumbSource;
+            document.getElementById('continueProgressFill').style.width = progressPercent + '%';
+        }
+
+        function openLastReadingStory() {
+            let targetId = lastReadStory;
+            if (!targetId && allStories.length > 1) {
+                targetId = allStories[1].id;
+            } else if (!targetId && allStories.length > 0) {
+                targetId = allStories[0].id;
+            }
+            if (targetId) {
+                openReader(targetId);
+            }
+        }
+
+        function updateStaticTexts() {
+            const t = translations[appLang];
+            document.getElementById('logoText').innerHTML = `<img src="assets/icon/logo.webp" alt="Logo" class="logo-icon" onerror="this.style.display='none'"> ${t.logo}`;
+            document.getElementById('searchInput').placeholder = t.searchPlaceholder;
+            document.getElementById('dailySectionTitle').innerText = t.dailyTitle;
+            document.getElementById('continueReadingTitle').innerText = t.continueReading;
+            document.getElementById('catSectionTitle').innerText = t.categories;
+            document.querySelectorAll('.view-all').forEach(el => el.innerText = t.viewAll);
+            document.getElementById('trendingSectionTitle').innerText = t.trending;
+            document.getElementById('exploreHeaderTitle').innerText = t.exploreHeader;
+            document.getElementById('tabBookmarks').innerText = t.tabBookmarks;
+            document.getElementById('tabHistory').innerText = t.tabHistory;
+            document.getElementById('tabDownloads').innerText = t.tabDownloads;
+            document.getElementById('statLabelRead').innerText = t.statRead;
+            document.getElementById('statLabelTime').innerText = t.statTime;
+            document.getElementById('statLabelBookmarks').innerText = t.statBookmarks;
+            document.getElementById('statLabelStreak').innerText = t.statStreak;
+            document.getElementById('menuAchieve').innerText = t.menuAchieve;
+            document.getElementById('menuFavorites').innerText = t.menuFavorites;
+            document.getElementById('menuHistory').innerText = t.menuHistory;
+            document.getElementById('menuDownloads').innerText = t.menuDownloads;
+            document.getElementById('menuPrefs').innerText = t.menuPrefs;
+            document.getElementById('menuNotifications').innerText = t.menuNotifications;
+            document.getElementById('menuLanguage').innerText = t.menuLanguage;
+            document.getElementById('navHome').innerText = t.navHome;
+            document.getElementById('navExplore').innerText = t.navExplore;
+            document.getElementById('navLibrary').innerText = t.navLibrary;
+            document.getElementById('navProfile').innerText = t.navProfile;
+            document.getElementById('readerBackBtn').innerHTML = `<img src="assets/icon/back.webp" alt="Back" style="width:12px; height:12px; object-fit:contain; vertical-align:middle;" onerror="this.style.display='none'"> ${t.backEscape}`;
+
+            document.getElementById('editModalTitle').innerText = t.editModalTitle;
+            document.getElementById('labelNameInput').innerText = t.labelNameInput;
+            document.getElementById('labelEmailInput').innerText = t.labelEmailInput;
+            document.getElementById('labelBioInput').innerText = t.labelBioInput;
+            document.getElementById('labelAvatarPicker').innerText = t.labelAvatarPicker;
+            document.getElementById('labelBgPicker').innerText = t.labelBgPicker;
+            document.getElementById('btnCancelEdit').innerText = t.btnCancelEdit;
+            document.getElementById('btnSaveEdit').innerText = t.btnSaveEdit;
+            document.getElementById('othersAppsTitle').innerText = t.othersAppsTitle;
+            renderOthersAppsSlider();
+            fetchAndRenderDailyStory();
+        }
+
+        function switchTab(screenId, navElement) {
+            document.querySelectorAll('.app-screen').forEach(screen => screen.classList.remove('active-screen'));
+            document.querySelectorAll('.bottom-nav .nav-item').forEach(nav => nav.classList.remove('active'));
+
+            const targetScreen = document.getElementById(screenId);
+            if (targetScreen) targetScreen.classList.add('active-screen');
+            if (navElement) {
+                navElement.classList.add('active');
+            }
+
+            let historyStateKey = "home";
+            if (screenId === 'home-screen') {
+                historyStateKey = "home";
+                updateContinueReadingUI();
+            } else if (screenId === 'explore-screen') {
+                historyStateKey = "explore";
+                hideCategoryStories();
+            } else if (screenId === 'library-screen') {
+                historyStateKey = "library";
+                renderLibrary();
+            } else if (screenId === 'profile-screen') {
+                historyStateKey = "profile";
+                updateProfileStats();
+                renderProfileDataUI();
+            } else if (screenId === 'notification-screen') {
+                historyStateKey = "notifications";
+                renderNotificationsScreen();
+            }
+
+            if (!history.state || history.state.screen !== historyStateKey) {
+                history.pushState({ screen: historyStateKey }, "", `#${historyStateKey}`);
+            }
+
+            window.scrollTo(0, 0);
+        }
+
+        function renderHomeCategories() {
+            const container = document.getElementById('homeCategoriesScroll');
+            container.innerHTML = '';
+
+            const categories = [...new Set(allStories.map(s => s.category))];
+            categories.forEach(cat => {
+                const catImg = cat.toLowerCase().replace(/\s+/g, '_');
+                const item = document.createElement('div');
+                item.className = 'cat-item-rect';
+                item.onclick = () => {
+                    switchTab('explore-screen', document.querySelectorAll('.bottom-nav .nav-item')[1]);
+                    showCategoryStories(cat);
+                };
+                item.innerHTML = `
+                    <img src="${catImg}.webp" class="cat-rect-img" alt="${cat}" onerror="this.src='${FALLBACK_IMG}'">
+                    <span>${cat}</span>
+                `;
+                container.appendChild(item);
+            });
+        }
+
+        function renderTrendingStories() {
+            const container = document.getElementById('trendingScroll');
+            container.innerHTML = '';
+
+            allStories.forEach(story => {
+                const title = appLang === 'en' ? story.title_en : story.title_hi;
+                let thumbSource = story.imageName && story.imageName.includes('/') ? story.imageName : `${STORY_BANNER_PATH}${story.imageName}.webp`;
+                const card = document.createElement('div');
+                card.className = 'trending-card';
+                card.onclick = () => openReader(story.id);
+                card.innerHTML = `
+                  <img src="${thumbSource}" class="trending-thumb" alt="${title}" onerror="this.src='${FALLBACK_IMG}'">
+                    <div class="trending-details">
+                        <h5>${title}</h5>
+                        <div class="trending-rating">★ ${story.rating}</div>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function renderExploreCategories() {
+            const grid = document.getElementById('exploreCategoryGrid');
+            grid.innerHTML = '';
+            const t = translations[appLang];
+
+            const categories = [...new Set(allStories.map(s => s.category))];
+            categories.forEach(cat => {
+                const count = allStories.filter(s => s.category === cat).length;
+                const catImg = cat.toLowerCase().replace(/\s+/g, '_');
+
+                const card = document.createElement('div');
+                card.className = 'category-row-card';
+                card.onclick = () => {
+                    showCategoryStories(cat);
+                };
+                card.innerHTML = `
+                    <div class="cat-row-left">
+                        <img src="${catImg}.webp" class="cat-row-thumb" alt="${cat}" onerror="this.src='${FALLBACK_IMG}'">
+                        <div class="cat-row-info">
+                            <h4>${cat}</h4>
+                            <p>${count} ${t.storiesAvailable}</p>
+                        </div>
+                    </div>
+                    <div class="cat-row-arrow">›</div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        function showCategoryStories(categoryName) {
+            document.getElementById('exploreMainView').style.display = 'none';
+            document.getElementById('exploreCategoryListView').style.display = 'block';
+            document.getElementById('categoryListHeader').innerText = `${categoryName} Stories`;
+
+            history.pushState({ screen: "category-view", category: categoryName }, "", `#category-${categoryName.toLowerCase().replace(/\s+/g, '-')}`);
+
+            const container = document.getElementById('categoryStoriesContainer');
+            container.innerHTML = '';
+
+            const filtered = allStories.filter(s => s.category.toLowerCase() === categoryName.toLowerCase());
+            const t = translations[appLang];
+
+            if (filtered.length === 0) {
+                container.innerHTML = `<p style="color:var(--text-muted); text-align:center; padding:30px;">${t.noItems}</p>`;
+                return;
+            }
+
+            filtered.forEach(story => {
+                const title = appLang === 'en' ? story.title_en : story.title_hi;
+                const timeText = appLang === 'en' ? story.time_en : story.time_hi;
+                let thumbSource = story.imageName && story.imageName.includes('/') ? story.imageName : `${STORY_BANNER_PATH}${story.imageName}.webp`;
+                const item = document.createElement('div');
+                item.className = 'lib-story-item';
+                item.onclick = () => openReader(story.id);
+
+                item.innerHTML = `
+                    <img src="${thumbSource}" class="lib-item-thumb" alt="${title}" onerror="this.src='${FALLBACK_IMG}'">
+                    <div class="lib-item-info">
+                        <h4>${title}</h4>
+                        <p>⏱️ ${timeText} • ★ ${story.rating}</p>
+                    </div>
+                    <span style="color:var(--primary-red); font-size:16px;">›</span>
+                `;
+                container.appendChild(item);
+            });
+        }
+
+        function hideCategoryStories() {
+            document.getElementById('exploreCategoryListView').style.display = 'none';
+            document.getElementById('exploreMainView').style.display = 'block';
+        }
+
+        function switchLibraryTab(tab, element) {
+            activeLibraryTab = tab;
+            document.querySelectorAll('.lib-tab').forEach(t => t.classList.remove('active'));
+            if (element) element.classList.add('active');
+            renderLibrary();
+        }
+
+        let activeLibraryTab = 'bookmarks';
+
+        function renderLibrary() {
+            const container = document.getElementById('libraryStoriesList');
+            container.innerHTML = '';
+            const t = translations[appLang];
+
+            let list = [];
+            if (activeLibraryTab === 'bookmarks') {
+                list = allStories.filter(s => favorites.includes(s.id));
+            } else if (activeLibraryTab === 'history') {
+                list = allStories.filter(s => historyList.includes(s.id));
+            } else {
+                list = allStories;
+            }
+
+            if (list.length === 0) {
+                container.innerHTML = `<p style="color:var(--text-muted); text-align:center; padding:30px;">${t.noItems}</p>`;
+                return;
+            }
+
+            list.forEach(story => {
+                const title = appLang === 'en' ? story.title_en : story.title_hi;
+                const timeText = appLang === 'en' ? story.time_en : story.time_hi;
+                let thumbSource = story.imageName && story.imageName.includes('/') ? story.imageName : `${STORY_BANNER_PATH}${story.imageName}.webp`;
+                const item = document.createElement('div');
+                item.className = 'lib-story-item';
+                item.onclick = () => openReader(story.id);
+
+                let extraAction = '';
+                if (activeLibraryTab === 'bookmarks') {
+                    extraAction = `<button class="remove-bookmark-btn" onclick="event.stopPropagation(); removeBookmark(${story.id})">⭐</button>`;
+                } else {
+                    extraAction = `<span style="color:var(--text-muted); font-size:12px;">›</span>`;
+                }
+
+                item.innerHTML = `
+                    <img src="${thumbSource}" class="lib-item-thumb" alt="${title}" onerror="this.src='${FALLBACK_IMG}'">
+                    <div class="lib-item-info">
+                        <h4>${title}</h4>
+                        <p>⏱️ ${timeText} • 🏷️ ${story.category}</p>
+                    </div>
+                    ${extraAction}
+                `;
+                container.appendChild(item);
+            });
+        }
+
+        function removeBookmark(id) {
+            favorites = favorites.filter(favId => favId !== id);
+            localStorage.setItem('darktales_favs', JSON.stringify(favorites));
+            renderLibrary();
+            updateProfileStats();
+            if (currentStoryId === id) updateReaderSaveButton();
+        }
+
+        function toggleCurrentBookmark() {
+            if (currentStoryId === null) return;
+            const index = favorites.indexOf(currentStoryId);
+            if (index > -1) {
+                favorites.splice(index, 1);
+            } else {
+                favorites.push(currentStoryId);
+            }
+            localStorage.setItem('darktales_favs', JSON.stringify(favorites));
+            updateReaderSaveButton();
+            updateProfileStats();
+            renderLibrary();
+        }
+
+        function updateReaderSaveButton() {
+            const btn = document.getElementById('readerSaveBtn');
+            const t = translations[appLang];
+            if (favorites.includes(currentStoryId)) {
+                btn.innerText = t.savedBtn;
+                btn.style.color = 'var(--primary-red)';
+            } else {
+                btn.innerText = t.saveBtn;
+                btn.style.color = 'var(--text-main)';
+            }
+        }
+
+        function updateProfileStats() {
+            document.getElementById('statStoriesRead').innerText = historyList.length;
+            document.getElementById('statBookmarks').innerText = favorites.length;
+        }
+
+        function openReader(id) {
+            currentStoryId = id;
+            let story = allStories.find(s => s.id === id);
+            if (!story) return;
+
+            lastReadStory = id;
+            localStorage.setItem('darktales_last_read', JSON.stringify(lastReadStory));
+
+            if (!historyList.includes(id)) {
+                historyList.push(id);
+                localStorage.setItem('darktales_history', JSON.stringify(historyList));
+            }
+
+            document.getElementById('readerLangToggleBtn').innerText = storyLang === 'en' ? 'HI' : 'EN';
+            document.getElementById('readTitle').innerText = storyLang === 'en' ? story.title_en : story.title_hi;
+            document.getElementById('readContent').innerText = storyLang === 'en' ? story.content_en : story.content_hi;
+            document.getElementById('readContent').style.fontSize = currentFontSize + 'px';
+            let thumbSource = story.imageName && story.imageName.includes('/') ? story.imageName : `${STORY_BANNER_PATH}${story.imageName}.webp`;
+            document.getElementById("readThumbnail").src = thumbSource;
+
+            updateReaderSaveButton();
+
+            document.body.style.overflow = 'hidden';
+            const readerView = document.getElementById('reader-view');
+            readerView.style.display = 'block';
+
+            history.pushState({ screen: "reader", storyId: id }, "", `#reader-${id}`);
+
+            let savedScrollPercent = currentScrollPercent[id] || 0;
+            setTimeout(() => {
+                let targetScrollTop = (savedScrollPercent / 100) * (readerView.scrollHeight - readerView.clientHeight);
+                readerView.scrollTop = targetScrollTop;
+            }, 50);
+        }
+
+        function closeReader() {
+            document.body.style.overflow = 'auto';
+            document.getElementById('reader-view').style.display = 'none';
+            currentStoryId = null;
+            updateProfileStats();
+            renderLibrary();
+            updateContinueReadingUI();
+
+            if (history.state && history.state.screen === "reader") {
+                history.back();
+            }
+        }
+
+        function toggleStoryLanguage() {
+            storyLang = storyLang === 'en' ? 'hi' : 'en';
+            if (currentStoryId !== null) {
+                openReader(currentStoryId);
+            }
+        }
+
+        function toggleAppLanguage() {
+            appLang = appLang === 'en' ? 'hi' : 'en';
+            document.getElementById('currentLangIndicator').innerText = appLang.toUpperCase();
+            updateStaticTexts();
+            renderFeaturedSlider();
+            renderOthersAppsSlider();
+            renderHomeCategories();
+            renderTrendingStories();
+            renderExploreCategories();
+            renderLibrary();
+            renderNotificationsScreen();
+        }
+
+        function adjustFontSize(change) {
+            currentFontSize += change * 2;
+            if (currentFontSize < 12) currentFontSize = 12;
+            if (currentFontSize > 26) currentFontSize = 26;
+            document.getElementById('readContent').style.fontSize = currentFontSize + 'px';
+        }
+
+        function updateProgressBar() {
+            const reader = document.getElementById('reader-view');
+            const scrollTop = reader.scrollTop;
+            const scrollHeight = reader.scrollHeight - reader.clientHeight;
+            if (scrollHeight <= 0) return;
+            const scrollPercent = (scrollTop / scrollHeight) * 100;
+
+            document.getElementById('progress-bar').style.width = scrollPercent + '%';
+
+            if (currentStoryId !== null) {
+                currentScrollPercent[currentStoryId] = Math.min(100, Math.max(1, scrollPercent));
+                localStorage.setItem('darktales_scroll_progress', JSON.stringify(currentScrollPercent));
+            }
+        }
+
+        function searchStories() {
+            const query = document.getElementById('searchInput').value.toLowerCase();
+            const container = document.getElementById('trendingScroll');
+            container.innerHTML = '';
+
+            if (!query) {
+                renderTrendingStories();
+                return;
+            }
+
+            const filtered = allStories.filter(s =>
+                s.title_en.toLowerCase().includes(query) ||
+                s.title_hi.toLowerCase().includes(query) ||
+                s.category.toLowerCase().includes(query)
+            );
+
+            if (filtered.length === 0) {
+                container.innerHTML = '<p style="color:var(--text-muted); font-size:12px; padding:10px;">No nightmares matched your search.</p>';
+                return;
+            }
+
+            filtered.forEach(story => {
+                const title = appLang === 'en' ? story.title_en : story.title_hi;
+                let thumbSource = story.imageName && story.imageName.includes('/') ? story.imageName : `${STORY_BANNER_PATH}${story.imageName}.webp`;
+                const card = document.createElement('div');
+                card.className = 'trending-card';
+                card.onclick = () => openReader(story.id);
+                card.innerHTML = `
+                   <img src="${thumbSource}" class="trending-thumb" alt="${title}" onerror="this.src='${FALLBACK_IMG}'">
+                    <div class="trending-details">
+                        <h5>${title}</h5>
+                        <div class="trending-rating">★ ${story.rating}</div>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function closeModal(e) {
+            if (e.target.id === 'appModal') {
+                closeAppModal();
+            }
+        }
+
+        function closeAppModal() {
+            document.getElementById('appModal').style.display = 'none';
+        }
+
+        function openAchievementsModal() {
+            const t = translations[appLang];
+            document.getElementById('modalTitle').innerText = t.achieveTitle;
+            document.getElementById('modalDesc').innerText = t.achieveDesc;
+            document.getElementById('appModal').style.display = 'flex';
+            history.pushState({ screen: "achievements-modal" }, "", "#achievements");
+        }
+
+        function openPreferencesModal() {
+            const t = translations[appLang];
+            document.getElementById('modalTitle').innerText = t.prefsTitle;
+            document.getElementById('modalDesc').innerText = t.prefsDesc;
+            document.getElementById('appModal').style.display = 'flex';
+            history.pushState({ screen: "preferences-modal" }, "", "#preferences");
+        }
+    </script>
+</body>
+
+</html>
