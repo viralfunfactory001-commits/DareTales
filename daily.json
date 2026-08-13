@@ -1,8 +1,8 @@
 [
   {
     "title": {
-      "en": "The Haunted Forest",
-      "hi": "भूतिया जंगल"
+      "en": "The Crying Doll",
+      "hi": "रोती हुई गुड़िया"
     },
     "description": {
       "en": "A new horror story...",
@@ -10,34 +10,208 @@
     },
     "image": "images/day1.webp",
     "url": "stories/day1.json",
-    "date": "2026-08-07"
+    "date": "2026-08-15"
   },
 
-
-  {
+    {
     "title": {
-      "en": "The Cursed Doll",
-      "hi": "शापित गुड़िया"
+      "en": "One Crime, Two Stories",
+      "hi": "एक जुर्म, दो कहानियां"
     },
     "description": {
-      "en": "A terrifying mystery awaits...",
-      "hi": "एक खौफनाक रहस्य आपका इंतज़ार कर रहा है..."
+      "en": "When the police van's siren pierced...",
+      "hi": "शहर की पुरानी हवेली के खंडहर..."
     },
-    "image": "images/day1.webp",
+    "image": "images/day2.webp",
     "url": "stories/day2.json",
-    "date": "2026-08-08"
-  },
+    "date": "2026-08-16"
+  }, 
+
+
+
   {
     "title": {
-      "en": "Midnight Train",
-      "hi": "आधी रात की ट्रेन"
+      "en": "What happened that night?",
+      "hi": "उस रात क्या हुआ था?"
     },
     "description": {
-      "en": "Don't board the last train...",
-      "hi": "आखिरी ट्रेन में मत चढ़ना..."
+      "en": "On that night, light raindrops...",
+      "hi": "उस रात शहर की खामोश सड़कों ..."
     },
-    "image": "images/daily3.webp",
+    "image": "images/day3.webp",
     "url": "stories/day3.json",
-    "date": "2026-08-09"
-  }
+    "date": "2026-08-17"
+  },
+
+ 
+
+ {
+    "title": {
+      "en": "Truth or Conspiracy?",
+      "hi": "सच या साज़िश?"
+    },
+    "description": {
+      "en": "Amidst the glitz and glamour of the city...",
+      "hi": "शहर की चकाचौंध के बीच खड़े ओमेगा..."
+    },
+    "image": "images/day4.webp",
+    "url": "stories/day4.json",
+    "date": "2026-08-18"
+  }, 
+
+ {
+    "title": {
+      "en": "There was someone else in the mirror",
+      "hi": "आइने में कोई और था"
+    },
+    "description": {
+      "en": "It was exactly seven o'clock in the evening...",
+      "hi": "शाम के ठीक सात बज चुके थे और बाहर..."
+    },
+    "image": "images/day5.webp",
+    "url": "stories/day5.json",
+    "date": "2026-08-19"
+  }, 
+
+ {
+    "title": {
+      "en": "A Killer’s Secret",
+      "hi": "एक हत्यारे का रहस्य"
+    },
+    "description": {
+      "en": "As Inspector Vikram’s car came...",
+      "hi": "कस्बे की घनी धुंध और सन्नाटे को..."
+    },
+    "image": "images/day6.webp",
+    "url": "stories/day6.json",
+    "date": "2026-08-20"
+  }, 
+
+ {
+    "title": {
+      "en": "The Unsolved Murder",
+      "hi": "अनसुलझी हत्या"
+    },
+    "description": {
+      "en": "On that cold, dark night in an old ...",
+      "hi": "शीतकालीन कोहरे से ढकी पहाड़ियों के बीच..."
+    },
+    "image": "images/day7.webp",
+    "url": "stories/day7.json",
+    "date": "2026-08-21"
+  }, 
+
+ {
+    "title": {
+      "en": "Stoneman Murders (1980s)",
+      "hi": "स्टोनमैन हत्याकांड (1980 का दशक)"
+    },
+    "description": {
+      "en": "Those terrifying, dark nights of the 1980s ...",
+      "hi": "1980 के दशक की वो भयानक काली रातें..."
+    },
+    "image": "images/day8.webp",
+    "url": "stories/day8.json",
+    "date": "2026-08-22"
+  }, 
+
+ {
+    "title": {
+      "en": "Aarushi-Hemraj Double Murder (2008)",
+      "hi": "आरुषि-हेमराज डबल मर्डर (2008)"
+    },
+    "description": {
+      "en": "That dark and ill-fated night...",
+      "hi": "15 मई 2008 की वो काली और मनहूस रात..."
+    },
+    "image": "images/day9.webp",
+    "url": "stories/day9.json",
+    "date": "2026-08-23"
+  }, 
+
+ {
+    "title": {
+      "en": "Burari Deaths (2018)",
+      "hi": "बुरारी मौतें (2018)"
+    },
+    "description": {
+      "en": "When Police Officer Rajiv Sharma’s heavy steps...",
+      "hi": "‎दिल्ली के संत नगर, बुराड़ी के उस शांत और..."
+    },
+    "image": "images/day10.webp",
+    "url": "stories/day10.json",
+    "date": "2026-08-24"
+  }, 
+
+
+ {
+    "title": {
+      "en": "Bhanwari Devi Case (2011)",
+      "hi": "भंवरी देवी कैसे (2011)"
+    },
+    "description": {
+      "en": "In 2011, the life of Bhanwari Devi...",
+      "hi": "साल 2011 में राजस्थान के जोधपुर जिले..."
+    },
+    "image": "images/day11.webp",
+    "url": "stories/day11.json",
+    "date": "2026-08-25"
+  }, 
+
+ {
+    "title": {
+      "en": "The Night Nobody Remembers",
+      "hi": "वह रात जिसे कोई याद नहीं रखता"
+    },
+    "description": {
+      "en": "The night that no one remembers was buried in...",
+      "hi": "वह रात जिसे कोई याद नहीं रखता, उस गाँव की..."
+    },
+    "image": "images/day12.webp",
+    "url": "stories/day12.json",
+    "date": "2026-08-26"
+  }, 
+
+ {
+    "title": {
+      "en": "The Room of Secrets",
+      "hi": "रहस्यों का कमरा"
+    },
+    "description": {
+      "en": "Nestled in the icy fog and impenetrable...",
+      "hi": "हिमाचल की बर्फीली धुंध और अभेद्य सन्नाटे में..."
+    },
+    "image": "images/day13.webp",
+    "url": "stories/day13.json",
+    "date": "2026-08-27"
+  }, 
+
+ {
+    "title": {
+      "en": "When the Lights Go Out",
+      "hi": "जब बत्तियाँ बुझ जाती हैं"
+    },
+    "description": {
+      "en": "Old tales often spoke of the ancient...",
+      "hi": "पुरानी कहानियों में अक्सर यह कहा जाता था कि..."
+    },
+    "image": "images/day14.webp",
+    "url": "stories/day14.json",
+    "date": "2026-08-28"
+  }, 
+
+ {
+    "title": {
+      "en": "The Ghost Who Waited",
+      "hi": "भूत जिसने इंतजार किया"
+    },
+    "description": {
+      "en": "The moss covering the walls of that old mansion...",
+      "hi": "कालीपुर के घने जंगलों के बीच बसी उस पुरानी हवेली की..."
+    },
+    "image": "images/day15.webp",
+    "url": "stories/day15.json",
+    "date": "2026-08-29"
+  }, 
+
 ]
