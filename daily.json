@@ -112,7 +112,7 @@
     },
     "image": "images/day8.webp",
     "url": "stories/day8.json",
-    "date": "2026-08-22"
+    "date": "2026-08-14"
   }, 
 
  {
@@ -213,5 +213,20 @@
     "url": "stories/day15.json",
     "date": "2026-08-29"
   }, 
+
+ {
+    "title": {
+        "en": " ", 
+       "hi": ""
+}, 
+    "description":{
+       "en": "", 
+       "hi": ""
+}, 
+   "image": "images/day16.webp",
+    "url": "stories/day16.json",
+    "date": "2026-08-30"
+
+}
 
 ]
