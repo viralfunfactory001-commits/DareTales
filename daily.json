@@ -10,7 +10,7 @@
     },
     "image": "images/day1.webp",
     "url": "stories/day1.json",
-    "date": "2026-08-15"
+    "date": "2026-09-01"
   },
 
     {
@@ -24,7 +24,7 @@
     },
     "image": "images/day2.webp",
     "url": "stories/day2.json",
-    "date": "2026-08-16"
+    "date": "2026-09-02"
   }, 
 
 
@@ -40,7 +40,7 @@
     },
     "image": "images/day3.webp",
     "url": "stories/day3.json",
-    "date": "2026-08-17"
+    "date": "2026-09-03"
   },
 
  
@@ -56,7 +56,7 @@
     },
     "image": "images/day4.webp",
     "url": "stories/day4.json",
-    "date": "2026-08-18"
+    "date": "2026-09-04"
   }, 
 
  {
@@ -70,7 +70,7 @@
     },
     "image": "images/day5.webp",
     "url": "stories/day5.json",
-    "date": "2026-08-19"
+    "date": "2026-09-05"
   }, 
 
  {
@@ -84,7 +84,7 @@
     },
     "image": "images/day6.webp",
     "url": "stories/day6.json",
-    "date": "2026-08-20"
+    "date": "2026-09-06"
   }, 
 
  {
@@ -98,7 +98,7 @@
     },
     "image": "images/day7.webp",
     "url": "stories/day7.json",
-    "date": "2026-08-21"
+    "date": "2026-09-07"
   }, 
 
  {
@@ -112,7 +112,7 @@
     },
     "image": "images/day8.webp",
     "url": "stories/day8.json",
-    "date": "2026-08-14"
+    "date": "2026-09-08"
   }, 
 
  {
@@ -126,7 +126,7 @@
     },
     "image": "images/day9.webp",
     "url": "stories/day9.json",
-    "date": "2026-08-23"
+    "date": "2026-09-09"
   }, 
 
  {
@@ -140,7 +140,7 @@
     },
     "image": "images/day10.webp",
     "url": "stories/day10.json",
-    "date": "2026-08-24"
+    "date": "2026-09-10"
   }, 
 
 
@@ -155,7 +155,7 @@
     },
     "image": "images/day11.webp",
     "url": "stories/day11.json",
-    "date": "2026-08-25"
+    "date": "2026-09-11"
   }, 
 
  {
@@ -169,7 +169,7 @@
     },
     "image": "images/day12.webp",
     "url": "stories/day12.json",
-    "date": "2026-08-26"
+    "date": "2026-09-12"
   }, 
 
  {
@@ -183,7 +183,7 @@
     },
     "image": "images/day13.webp",
     "url": "stories/day13.json",
-    "date": "2026-08-27"
+    "date": "2026-09-13"
   }, 
 
  {
@@ -197,7 +197,7 @@
     },
     "image": "images/day14.webp",
     "url": "stories/day14.json",
-    "date": "2026-08-28"
+    "date": "2026-09-14"
   }, 
 
  {
@@ -211,7 +211,7 @@
     },
     "image": "images/day15.webp",
     "url": "stories/day15.json",
-    "date": "2026-08-29"
+    "date": "2026-09-15"
   }, 
 
  {
@@ -225,7 +225,7 @@
 }, 
    "image": "images/day16.webp",
     "url": "stories/day16.json",
-    "date": "2026-08-30"
+    "date": "2026-09-16"
 
 }
 
